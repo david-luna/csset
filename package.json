@@ -1,0 +1,35 @@
+{
+  "name": "csset",
+  "version": "0.0.1",
+  "description": "experiment to perform algebra of sets with css",
+  "main": "./lib/csset.js",
+  "types": "./lib/csset.d.ts",
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/david-luna/csset.git"
+  },
+  "keywords": [
+    "css",
+    "sets",
+    "algebra",
+    "experiment"
+  ],
+  "author": "David Luna",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/david-luna/csset/issues"
+  },
+  "homepage": "https://github.com/david-luna/csset#readme",
+  "devDependencies": {
+    "@types/jest": "^24.0.23",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.1.0",
+    "typescript": "^3.7.2"
+  }
+}

@@ -1,0 +1,21 @@
+language: node_js
+node_js:
+  - "stable"
+cache: npm
+branches:
+  only:
+    - master
+    - /\d+\.\d+\.\d+/
+script:
+  - npm test
+  - npm run lcov
+  - npm run build
+deploy:
+  provider: npm
+  email: "$NPM_EMAIL"
+  api_key: "$NPM_TOKEN"
+  skip_cleanup: true
+  on:
+    repo: david-luna/chainable
+    tags: true
+    all_branches: true
