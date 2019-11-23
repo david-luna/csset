@@ -16,6 +16,6 @@ deploy:
   api_key: "$NPM_TOKEN"
   skip_cleanup: true
   on:
-    repo: david-luna/chainable
+    repo: david-luna/csset
     tags: true
     all_branches: true
