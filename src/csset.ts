@@ -1,30 +1,21 @@
-// Types & enums
-enum AttributeMatcher {
-  Presence   = '',
-  Equal      = '=',
-  StartsWith = '^',
-  EndsWith   = '$',
-  Contains   = '~'
-}
-
-interface CssAttribute {
-  name   : string;
-  matcher: AttributeMatcher;
-  value? : string;
-}
-
+import { CssAttribute } from './types';
 
 export class Csset {
-  private element: string         = '*';
-  private attribs: CssAttribute[] = [];
-  private classes: string[]       = [];
-  private subsets: Csset[] = [];
+  element  : string                    = '*';
+  attribs  : Map<string, CssAttribute> = new Map();
+  classes  : Map<string, boolean>      = new Map();
+  children : Csset[]                   = [];
+  offspring: Csset | undefined;
 
   /**
    * Parses the given selector filing up its private properties with metadata
    * @param selector the selector string
    */
-  constructor (private selector: string) {}
+  constructor (selector: string) {
+    const elemRx = /^[^\.\[]+/;
+    const attrRx = /^\[[^\]]\]/;
+    const clasRx = /^\.[^\]\.]/;
+  }
 
 
   /**
