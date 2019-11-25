@@ -1,20 +1,18 @@
 import { CssAttribute } from './types';
 
 export class Csset {
-  element  : string                    = '*';
-  attribs  : Map<string, CssAttribute> = new Map();
-  classes  : Map<string, boolean>      = new Map();
-  children : Csset[]                   = [];
-  offspring: Csset | undefined;
+  element  : string;
+  attribs  : Map<string, CssAttribute>;
+  classes  : Map<string, boolean>;
+  children : Csset[];
+  offspring: Csset;
 
   /**
    * Parses the given selector filing up its private properties with metadata
    * @param selector the selector string
    */
   constructor (selector: string) {
-    const elemRx = /^[^\.\[]+/;
-    const attrRx = /^\[[^\]]\]/;
-    const clasRx = /^\.[^\]\.]/;
+    
   }
 
 

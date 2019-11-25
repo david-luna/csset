@@ -1,9 +1,11 @@
 export enum AttributeMatcher {
   Presence   = '',
   Equal      = '=',
-  StartsWith = '^',
-  EndsWith   = '$',
-  Contains   = '~'
+  Prefix     = '^',
+  Suffix     = '$',
+  Contains   = '~',
+  Subcode    = '|',
+  Occurrence = '*',
 }
 
 export interface CssAttribute {
