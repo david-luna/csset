@@ -12,7 +12,7 @@ export class Csset {
    * @param selector the selector string
    */
   constructor (selector: string) {
-    
+    // TODO: get the rules from the string
   }
 
 
