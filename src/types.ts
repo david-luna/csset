@@ -1,3 +1,15 @@
+export enum CssTokeType {
+  Void,
+  Id,
+  Element,
+  Class,
+  Attribute
+}
+export interface CssToken {
+  type : CssTokeType,
+  value: string;
+}
+
 export enum AttributeMatcher {
   Presence   = '',
   Equal      = '=',
