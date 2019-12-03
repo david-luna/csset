@@ -30,9 +30,6 @@ describe('constructor', () => {
     const classes = cssrule.classes;
     const attr1 = attribs.get('attr1');
     const attr2 = attribs.get('attr2');
-
-    console.log(attr2);
-    
   
     expect(cssrule.id).toEqual('#id');
     expect(classes.has('class1')).toBeTruthy();

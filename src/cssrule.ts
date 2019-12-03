@@ -35,8 +35,23 @@ export class CssRule {
   get attributes(): Map<string, Set<CssAttribute>> {
     return new Map(this._attribs);
   }
-  
   constructor (selector: string) {
+    this.parse(selector);
+  }
+
+  equals ( rule: CssRule ): boolean {
+    if (this.selector === rule.selector) {
+      return true;
+    }
+  }
+
+  toString(): string {
+    const classes = Array.from(this._classes).sort();
+    const attribs = Array.from(this._attribs).sort();
+    
+  }
+
+  private parse ( selector: string ) {
     if (!selector) {
       throw SyntaxError(`Selector cannot be empty.`);
     }
@@ -74,21 +89,21 @@ export class CssRule {
     }
   }
 
-  private setId(id: string) {
+  private setId( id: string ) {
     if (this._id) {
       throw SyntaxError(`Identifier already se to ${this.id}.`)
     }
     this._id = id;
   }
 
-  private setElement(elem: string) {
+  private setElement ( elem: string ) {
     if(this._attribs.size) {
       throw SyntaxError(`Elements cannot be defined after attributes.`);
     }
     this._element = elem;
   }
 
-  private addClass(clazz: string) {
+  private addClass ( clazz: string ) {
     const classRegex = /-?[_a-zA-Z]+[_a-zA-Z0-9-]*/;
     const className  = clazz.slice(1);
 
@@ -99,7 +114,7 @@ export class CssRule {
     this._classes.add(className);
   }
 
-  private addAttribute(attr: string) {
+  private addAttribute ( attr: string ) {
     const parts   = attr.slice(1,-1).split('=');
     const nameRx  = /^[^\t\n\f \/>"'=]+$/;
     const matchRx = /[\^\$~\|\*]/;
@@ -126,7 +141,7 @@ export class CssRule {
     this._attribs.set(name, attribSet);
   }
 
-  private extractToken(selector: string): [CssToken, string] {
+  private extractToken ( selector: string ): [CssToken, string] {
     const matcher = CSS_TOKEN_MATCHERS.find((t) => t.rx.test(selector));
     let execArray: RegExpExecArray | null | undefined;
     let token    : CssToken;
