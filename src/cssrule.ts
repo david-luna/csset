@@ -1,4 +1,9 @@
-import { CssToken, AttributeMatcher, CssAttribute, CssTokeType } from './types';
+import {
+  CssToken,
+  CssAttribute,
+  CssTokeType,
+  CssAttributeMatcher
+} from './types';
 
 const CSS_TOKEN_MATCHERS = [
   { rx:/^[^\.\[#]+/  , type: CssTokeType.Element },
@@ -12,8 +17,8 @@ export class CssRule {
   private _selector: string;
   private _id      : string;
   private _element : string;
-  private _attribs : Map<string, CssAttribute>;
-  private _classes : Map<string, boolean>;
+  private _classes : Set<string>;
+  private _attribs : Map<string, Set<CssAttribute>>;
 
   get selector(): string {
     return this._selector;
@@ -24,13 +29,13 @@ export class CssRule {
   get element(): string {
     return this._element;
   }
-  get attributes(): Map<string, CssAttribute> {
+  get classes(): Set<string> {
+    return new Set(this._classes);
+  }
+  get attributes(): Map<string, Set<CssAttribute>> {
     return new Map(this._attribs);
   }
-  get classes(): Map<string, boolean> {
-    return new Map(this._classes);
-  }
-
+  
   constructor (selector: string) {
     if (!selector) {
       throw SyntaxError(`Selector cannot be empty.`);
@@ -38,7 +43,7 @@ export class CssRule {
 
     this._selector = '';
     this._attribs  = new Map();
-    this._classes  = new Map();
+    this._classes  = new Set();
 
     let [token, rest] = this.extractToken(selector);
 
@@ -91,7 +96,7 @@ export class CssRule {
       throw new SyntaxError(`Invalid class name ${className}`);
     }
 
-    this._classes.set(className, true);
+    this._classes.add(className);
   }
 
   private addAttribute(attr: string) {
@@ -102,7 +107,7 @@ export class CssRule {
     const matchEx = matchRx.exec(parts[0]);
 
     let name    = matchEx ? parts[0].slice(0, -1) : parts[0];
-    let matcher = ((matchEx && matchEx[0]) || '') as AttributeMatcher;
+    let matcher = ((matchEx && matchEx[0]) || '') as CssAttributeMatcher;
     let value   = parts[1] || '';
 
     if (!nameRx.test(name)) {
@@ -114,14 +119,18 @@ export class CssRule {
 
     value = value.replace(/^["']|["']$/g, '');
 
-    this._attribs.set(name, { name, matcher, value });
+    const attribDef = { name, matcher, value };
+    const attribSet = this._attribs.get(name) || new Set();
+    
+    attribSet.add(attribDef);
+    this._attribs.set(name, attribSet);
   }
 
   private extractToken(selector: string): [CssToken, string] {
     const matcher = CSS_TOKEN_MATCHERS.find((t) => t.rx.test(selector));
     let execArray: RegExpExecArray | null | undefined;
-    let token: CssToken;
-    let rest: string;
+    let token    : CssToken;
+    let rest     : string;
 
     token     = { type: CssTokeType.Void, value: '' };
     rest      = selector;
@@ -132,7 +141,6 @@ export class CssRule {
       rest  = selector.replace(execArray[0], '');
     }
 
-    console.log(token, rest)
     return [token, rest];
   }
 }

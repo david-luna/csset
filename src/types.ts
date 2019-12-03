@@ -10,18 +10,18 @@ export interface CssToken {
   value: string;
 }
 
-export enum AttributeMatcher {
+export enum CssAttributeMatcher {
   Presence   = '',
   Equal      = '=',
   Prefix     = '^',
   Suffix     = '$',
-  Contains   = '~',
+  Contains   = '*',
   Subcode    = '|',
-  Occurrence = '*',
+  Occurrence = '~',
 }
 
 export interface CssAttribute {
   name   : string;
-  matcher: AttributeMatcher;
+  matcher: CssAttributeMatcher;
   value? : string;
 }
