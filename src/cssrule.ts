@@ -43,12 +43,17 @@ export class CssRule {
     if (this.selector === rule.selector) {
       return true;
     }
+    return false;
   }
 
   toString(): string {
-    const classes = Array.from(this._classes).sort();
-    const attribs = Array.from(this._attribs).sort();
-    
+    const classes = Array.from(this._classes);
+    const attribs = Array.from(this._attribs.values()).map(v => Array.from(v || '')).reduce((a, v) => a.concat(v), []);
+
+    const strClasses = classes.map(n => `.${n}`);
+    const strAttribs = attribs.map(a => `[${a.name}${a.matcher ? a.matcher + '="' + a.value + '"': ''}]`)
+
+    return `${this.element}${this.id}${strClasses.sort().join('')}${strAttribs.sort().join('')}`;
   }
 
   private parse ( selector: string ) {

@@ -57,3 +57,12 @@ describe('constructor', () => {
 });
 
 
+describe('serialisation', () => {
+  test('should create the instance when the selector is wrong', () => {
+    const selector = `elem#id.class1[attr1*="value1"].class2[attr2$='value2suff'][attr2^='value2pref']`;
+    const expected = `elem#id.class1.class2[attr1*="value1"][attr2$="value2suff"][attr2^="value2pref"]`;
+    const cssrule = new CssRule(selector);
+    
+    expect(`${cssrule}`).toEqual(expected);
+  })
+});
