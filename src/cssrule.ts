@@ -18,7 +18,7 @@ export class CssRule {
   private _id      : string;
   private _element : string;
   private _classes : Set<string>;
-  private _attribs : Map<string, Set<CssAttribute>>;
+  private _attribs : Map<string, CssAttribute>;
 
   get selector(): string {
     return this._selector;
@@ -32,7 +32,7 @@ export class CssRule {
   get classes(): Set<string> {
     return new Set(this._classes);
   }
-  get attributes(): Map<string, Set<CssAttribute>> {
+  get attributes(): Map<string, CssAttribute> {
     return new Map(this._attribs);
   }
   constructor (selector: string) {
@@ -40,20 +40,41 @@ export class CssRule {
   }
 
   equals ( rule: CssRule ): boolean {
-    if (this.selector === rule.selector) {
-      return true;
+    return `${this}` === `${rule}`;
+  }
+
+  contains ( rule: CssRule ): boolean {
+    // Element
+    if (this.element !== '*' && this.element !== rule.element) {
+      return false;
     }
-    return false;
+
+    // ID
+    if (this.id && this.id !== rule.id) {
+      return false;
+    }
+
+    // classes
+    for (let c of this.classes) {
+      if (!rule.classes.has(c)) {
+        return false;
+      }
+    }
+
+    // Attributes
+    // TODO: check with values for different matchers
+
+    return true;
   }
 
   toString(): string {
-    const classes = Array.from(this._classes);
-    const attribs = Array.from(this._attribs.values()).map(v => Array.from(v || '')).reduce((a, v) => a.concat(v), []);
+    const classes = Array.from(this._classes).sort();
+    const attribs = Array.from(this._attribs.keys()).sort().map(n => this._attribs.get(n)) as CssAttribute[];
 
     const strClasses = classes.map(n => `.${n}`);
     const strAttribs = attribs.map(a => `[${a.name}${a.matcher ? a.matcher + '="' + a.value + '"': ''}]`)
 
-    return `${this.element}${this.id}${strClasses.sort().join('')}${strAttribs.sort().join('')}`;
+    return `${this.element}${this.id}${strClasses.join('')}${strAttribs.join('')}`;
   }
 
   private parse ( selector: string ) {
@@ -82,11 +103,11 @@ export class CssRule {
           this.addAttribute(token.value);
           break;
       }
+      this._selector += token.value;
 
       let next = this.extractToken(rest);
       token = next[0];
       rest  = next[1];
-      this._selector += token.value;
     }
 
     if (!this._selector) {
@@ -109,7 +130,7 @@ export class CssRule {
   }
 
   private addClass ( clazz: string ) {
-    const classRegex = /-?[_a-zA-Z]+[_a-zA-Z0-9-]*/;
+    const classRegex = /^-?[_a-zA-Z]+[_a-zA-Z0-9-]*$/;
     const className  = clazz.slice(1);
 
     if (!classRegex.test(className)) {
@@ -120,30 +141,74 @@ export class CssRule {
   }
 
   private addAttribute ( attr: string ) {
+    const attribNext = this.getAttributeValue(attr);
+    const attribKey  = `${attribNext.name}${attribNext.matcher}`;
+    const attribCurr = this._attribs.get(attribKey) as CssAttribute;
+
+    if (attribCurr) {
+      const nextVal = `${attribNext.value}`;
+      const currVal = `${attribCurr.value}`;
+
+      switch (attribCurr.matcher) {
+        case CssAttributeMatcher.Presence:
+        case CssAttributeMatcher.Equal:
+          if ( nextVal !== currVal) {
+            throw SyntaxError(`Attribute ${attribNext.name} cannot equal to ${nextVal} and ${currVal} at the same time`);
+          }
+          break;
+        case CssAttributeMatcher.Prefix:
+          let mergedPref = nextVal.startsWith(currVal) ? nextVal : currVal.startsWith(nextVal) ? currVal : null;
+
+          if (!mergedPref) {
+            throw SyntaxError(`Attribute ${attribNext.name} cannot start with ${nextVal} and ${currVal} at the same time`);
+          }
+          attribNext.value = mergedPref;
+          break;
+        case CssAttributeMatcher.Suffix:
+          let mergedSuff = nextVal.endsWith(currVal) ? nextVal : currVal.endsWith(nextVal) ? currVal : null;
+
+          if (!mergedSuff) {
+            throw SyntaxError(`Attribute ${attribNext.name} cannot end with ${nextVal} and ${currVal} at the same time`);
+          }
+          attribNext.value = mergedSuff;
+          break;
+        case CssAttributeMatcher.Subcode:
+            if ( nextVal !== currVal) {
+              throw SyntaxError(`Attribute ${attribNext.name} cannot have ${nextVal} and ${currVal} as subcode at the same time`);
+            }
+            break;
+        case CssAttributeMatcher.Contains:
+        case CssAttributeMatcher.Occurrence:
+          // TODO: here an attr may contain both values or have different occurrences
+          // now doing nothing the value is replaced
+        default:
+      }
+    }
+
+    this._attribs.set(attribKey, attribNext);
+  }
+
+  private getAttributeValue ( attr: string ): CssAttribute {
     const parts   = attr.slice(1,-1).split('=');
     const nameRx  = /^[^\t\n\f \/>"'=]+$/;
     const matchRx = /[\^\$~\|\*]/;
-    const valueRx = /^('|")[^'"]+\1$/;
+    const valueRx = /^('|")[^'"]+\1$|^[^'"]+$/;
     const matchEx = matchRx.exec(parts[0]);
 
     let name    = matchEx ? parts[0].slice(0, -1) : parts[0];
-    let matcher = ((matchEx && matchEx[0]) || '') as CssAttributeMatcher;
     let value   = parts[1] || '';
+    let matcher = ((matchEx && matchEx[0]) || (value ? '=' : '')) as CssAttributeMatcher;
 
     if (!nameRx.test(name)) {
-      throw new SyntaxError(`Invalid atrribute name ${name}`);
+      throw new SyntaxError(`Invalid atrribute name in ${attr}`);
     }
-    if (!valueRx.test(value)) {
-      throw new SyntaxError(`Invalid atrribute value ${value}`);
+    if (matcher !== CssAttributeMatcher.Presence && !valueRx.test(value)) {
+      throw new SyntaxError(`Invalid atrribute value in ${attr}`);
     }
 
     value = value.replace(/^["']|["']$/g, '');
 
-    const attribDef = { name, matcher, value };
-    const attribSet = this._attribs.get(name) || new Set();
-    
-    attribSet.add(attribDef);
-    this._attribs.set(name, attribSet);
+    return { name, matcher, value };
   }
 
   private extractToken ( selector: string ): [CssToken, string] {
