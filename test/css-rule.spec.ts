@@ -1,4 +1,4 @@
-import { CssRule } from '../src/cssrule';
+import { CssRule } from '../src/css-rule';
 import { CssAttributeMatcher } from '../src/types';
 
 describe.skip('constructor', () => {

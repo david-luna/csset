@@ -1,14 +1,13 @@
 import { CssAttributeMatcher } from './types';
 
-const matchers = '^$~|*'.split('');
-
 export class CssAttribute {
-  name   : string;
-  matcher: CssAttributeMatcher;
-  value  : string;
+  selector: string;
+  name    : string;
+  matcher : CssAttributeMatcher;
+  value   : string;
 
-  constructor ( attr: string ) {
-    const parts   = attr.slice(1,-1).split('=');
+  constructor ( sel: string ) {
+    const parts   = sel.slice(1,-1).split('=');
     const nameRx  = /^[^\t\n\f \/>"'=]+$/;
     const matchRx = /[\^\$~\|\*]/;
     const valueRx = /^('|")[^'"]+\1$|^[^'"]+$/;
@@ -19,41 +18,67 @@ export class CssAttribute {
     let matcher = ((matchEx && matchEx[0]) || (value ? '=' : '')) as CssAttributeMatcher;
 
     if (!nameRx.test(name)) {
-      throw new SyntaxError(`Invalid atrribute name in ${attr}`);
+      throw new SyntaxError(`Invalid atrribute name in ${sel}`);
     }
     if (matcher !== CssAttributeMatcher.Presence && !valueRx.test(value)) {
-      throw new SyntaxError(`Invalid atrribute value in ${attr}`);
+      throw new SyntaxError(`Invalid atrribute value in ${sel}`);
     }
 
     value = value.replace(/^["']|["']$/g, '');
 
-    this.name    = name;
-    this.matcher = matcher;
-    this.value   = value;
+    this.selector = sel;
+    this.name     = name;
+    this.matcher  = matcher;
+    this.value    = value;
   }
 
-  contains ( attr: CssAttribute ): boolean {
-    if (
-      this.name !== attr.name ||
-      this.matcher !== attr.matcher ||
-      this.value.length > attr.value.length
-    ) {
+  includes ( attr: CssAttribute ): boolean {
+    if ( this.name !== attr.name ) {
       return false;
     }
 
+    switch (this.matcher) {
+      case CssAttributeMatcher.Presence:
+        return true;
+      case CssAttributeMatcher.Equal:
+        return this.equalIncludes(attr);
+      case CssAttributeMatcher.Prefix:
+        return this.prefixIncludes(attr);
+      case CssAttributeMatcher.Suffix:
+        return this.suffixIncludes(attr);
+      case CssAttributeMatcher.Contains:
+        return this.containsIncludes(attr);
+      case CssAttributeMatcher.Subcode:
+        return this.subcodeIncludes(attr);
+      case CssAttributeMatcher.Occurrence:
+        return this.occurrenceIncludes(attr);
+    }
+  }
+
+  union ( attr: CssAttribute ): CssAttribute | void {
+    if ( this.includes(attr) ) {
+      return this;
+    }
+
+    if ( attr.includes(this) ) {
+      return attr;
+    }
+
     if (
-      this.matcher === CssAttributeMatcher.Prefix ||
-      this.matcher === CssAttributeMatcher.Subcode
+      this.matcher === CssAttributeMatcher.Contains ||
+      this.value.indexOf(attr.value) !== -1
     ) {
-      return attr.value.startsWith(this.value);
+      return new CssAttribute(`${this.name}*="${attr.value}"`);
     }
 
-    if ( this.matcher === CssAttributeMatcher.Suffix ) {
-      return attr.value.endsWith(this.value);
+    if (
+      attr.matcher === CssAttributeMatcher.Contains ||
+      attr.value.indexOf(this.value) !== -1
+    ) {
+      return new CssAttribute(`${attr.name}*="${this.value}"`);
     }
 
-    // Remaining case is equal or occurence matchers
-    return attr.value === this.value;
+    return void 0;
   }
 
   toString(): string {
@@ -61,5 +86,70 @@ export class CssAttribute {
       return `[${this.name}]`;
     }
     return  `[${this.name}${this.matcher.replace('=', '')}="${this.value}"]`;
+  }
+
+  private equalIncludes ( attr: CssAttribute ): boolean {
+    return attr.matcher === CssAttributeMatcher.Equal && this.value === attr.value;
+  }
+
+  private prefixIncludes ( attr: CssAttribute ): boolean {
+    if (
+      attr.matcher === CssAttributeMatcher.Prefix ||
+      attr.matcher === CssAttributeMatcher.Subcode ||
+      attr.matcher === CssAttributeMatcher.Equal
+    ) {
+      return attr.value.startsWith(this.value);
+    }
+
+    return false;
+  }
+
+  private suffixIncludes ( attr: CssAttribute ): boolean {
+    if (
+      attr.matcher === CssAttributeMatcher.Suffix ||
+      attr.matcher === CssAttributeMatcher.Equal
+    ) {
+      return attr.value.endsWith(this.value);
+    }
+
+    return false;
+  }
+
+  private containsIncludes ( attr: CssAttribute ): boolean {
+    if (
+      attr.matcher === CssAttributeMatcher.Prefix ||
+      attr.matcher === CssAttributeMatcher.Suffix ||
+      attr.matcher === CssAttributeMatcher.Subcode ||
+      attr.matcher === CssAttributeMatcher.Occurrence ||
+      attr.matcher === CssAttributeMatcher.Contains ||
+      attr.matcher === CssAttributeMatcher.Equal
+    ) {
+      return attr.value.indexOf(this.value) !== -1;
+    }
+
+    return false;
+  }
+
+  private subcodeIncludes ( attr: CssAttribute ): boolean {
+    if (
+      attr.matcher === CssAttributeMatcher.Prefix ||
+      attr.matcher === CssAttributeMatcher.Subcode ||
+      attr.matcher === CssAttributeMatcher.Equal
+    ) {
+      return attr.value === this.value;
+    }
+
+    return false;
+  }
+
+  private occurrenceIncludes ( attr: CssAttribute ): boolean {
+    if (
+      attr.matcher === CssAttributeMatcher.Occurrence ||
+      attr.matcher === CssAttributeMatcher.Equal
+    ) {
+      return attr.value === this.value;
+    }
+
+    return false;
   }
 }
