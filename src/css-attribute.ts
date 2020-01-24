@@ -1,5 +1,14 @@
 import { CssAttributeMatcher } from './types';
 
+const sameMatchers = (matchers: CssAttributeMatcher[], expected: CssAttributeMatcher[]) => {
+  const sortedMatchers = matchers.sort();
+  const sortedExpected = expected.sort();
+
+  return sortedMatchers.reduce((same, matcher, index) => {
+    return same && matcher === sortedExpected[index];
+  }, true);
+};
+
 export class CssAttribute {
   selector: string;
   name    : string;
@@ -55,7 +64,21 @@ export class CssAttribute {
     }
   }
 
-  union ( attr: CssAttribute ): CssAttribute | void {
+  union ( attr: CssAttribute ): CssAttribute | null {
+    if ( this.name !== attr.name ) {
+       return null;
+    }
+
+    // Sepcial case where each includes the other
+    const matchers = [CssAttributeMatcher.Prefix, CssAttributeMatcher.Subcode];
+    if (
+      this.value === attr.value &&
+      matchers.indexOf(this.matcher) !== -1 &&
+      matchers.indexOf(attr.matcher) !== -1
+    ) {
+      return this.matcher === CssAttributeMatcher.Prefix ? this : attr;
+    }
+
     if ( this.includes(attr) ) {
       return this;
     }
@@ -64,21 +87,49 @@ export class CssAttribute {
       return attr;
     }
 
-    if (
-      this.matcher === CssAttributeMatcher.Contains ||
-      this.value.indexOf(attr.value) !== -1
-    ) {
-      return new CssAttribute(`${this.name}*="${attr.value}"`);
+    if ( this.value.indexOf(attr.value) !== -1 ) {
+      return new CssAttribute(`[${this.name}*="${attr.value}"]`);
     }
 
-    if (
-      attr.matcher === CssAttributeMatcher.Contains ||
-      attr.value.indexOf(this.value) !== -1
-    ) {
-      return new CssAttribute(`${attr.name}*="${this.value}"`);
+    if ( attr.value.indexOf(this.value) !== -1 ) {
+      return new CssAttribute(`[${this.name}*="${this.value}"]`);
     }
 
-    return void 0;
+    return null;
+  }
+
+  intersection ( attr: CssAttribute ): CssAttribute | null {
+    if ( this.name !== attr.name ) {
+       return null;
+    }
+
+    // Sepcial cases where
+    // 1. starting and ending with the same vale
+    // 2. starting and occurence with the same vale
+    if (
+      this.value === attr.value &&
+      (
+        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Prefix, CssAttributeMatcher.Suffix]) ||
+        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Prefix, CssAttributeMatcher.Occurrence]) ||
+        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Subcode, CssAttributeMatcher.Suffix]) ||
+        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Suffix, CssAttributeMatcher.Occurrence]) ||
+        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Subcode, CssAttributeMatcher.Occurrence])
+      )
+    ) {
+      return new CssAttribute(`[${this.name}="${this.value}"]`);
+    }
+
+    if ( this.includes(attr) ) {
+      // console.log(`${this} \u2283 ${attr}`);
+      return attr;
+    }
+
+    if ( attr.includes(this) ) {
+      // console.log(`${this} \u2282 ${attr}`);
+      return this;
+    }
+
+    return null;
   }
 
   toString(): string {
@@ -132,7 +183,6 @@ export class CssAttribute {
 
   private subcodeIncludes ( attr: CssAttribute ): boolean {
     if (
-      attr.matcher === CssAttributeMatcher.Prefix ||
       attr.matcher === CssAttributeMatcher.Subcode ||
       attr.matcher === CssAttributeMatcher.Equal
     ) {
