@@ -1,4 +1,4 @@
-import { CssAttributeMatcher } from './types';
+import { CssMatcherSymbol } from './types';
 
 const logger = (att1: CssAttribute, att2: CssAttribute) : (...args:any[]) => void => {
   if (att1.matcher === '^' && att2.matcher ==='$') {
@@ -8,7 +8,7 @@ const logger = (att1: CssAttribute, att2: CssAttribute) : (...args:any[]) => voi
   return () => void 0;
 };
 
-const sameMatchers = (matchers: CssAttributeMatcher[], expected: CssAttributeMatcher[]) => {
+const sameMatchers = (matchers: CssMatcherSymbol[], expected: CssMatcherSymbol[]) => {
   const sortedMatchers = matchers.sort();
   const sortedExpected = expected.sort();
 
@@ -20,7 +20,7 @@ const sameMatchers = (matchers: CssAttributeMatcher[], expected: CssAttributeMat
 export class CssAttribute {
   selector: string;
   name    : string;
-  matcher : CssAttributeMatcher;
+  matcher : CssMatcherSymbol;
   value   : string;
 
   constructor ( sel: string ) {
@@ -32,12 +32,12 @@ export class CssAttribute {
 
     let name    = matchEx ? parts[0].slice(0, -1) : parts[0];
     let value   = parts[1] || '';
-    let matcher = ((matchEx && matchEx[0]) || (value ? '=' : '')) as CssAttributeMatcher;
+    let matcher = ((matchEx && matchEx[0]) || (value ? '=' : '')) as CssMatcherSymbol;
 
     if (!nameRx.test(name)) {
       throw new SyntaxError(`Invalid atrribute name in ${sel}`);
     }
-    if (matcher !== CssAttributeMatcher.Presence && !valueRx.test(value)) {
+    if (matcher !== CssMatcherSymbol.Presence && !valueRx.test(value)) {
       throw new SyntaxError(`Invalid atrribute value in ${sel}`);
     }
 
@@ -55,19 +55,19 @@ export class CssAttribute {
     }
 
     switch (this.matcher) {
-      case CssAttributeMatcher.Presence:
+      case CssMatcherSymbol.Presence:
         return true;
-      case CssAttributeMatcher.Equal:
+      case CssMatcherSymbol.Equal:
         return this.equalIncludes(attr);
-      case CssAttributeMatcher.Prefix:
+      case CssMatcherSymbol.Prefix:
         return this.prefixIncludes(attr);
-      case CssAttributeMatcher.Suffix:
+      case CssMatcherSymbol.Suffix:
         return this.suffixIncludes(attr);
-      case CssAttributeMatcher.Contains:
+      case CssMatcherSymbol.Contains:
         return this.containsIncludes(attr);
-      case CssAttributeMatcher.Subcode:
+      case CssMatcherSymbol.Subcode:
         return this.subcodeIncludes(attr);
-      case CssAttributeMatcher.Occurrence:
+      case CssMatcherSymbol.Occurrence:
         return this.occurrenceIncludes(attr);
     }
   }
@@ -78,13 +78,13 @@ export class CssAttribute {
     }
 
     // Sepcial case where each includes the other
-    const matchers = [CssAttributeMatcher.Prefix, CssAttributeMatcher.Subcode];
+    const matchers = [CssMatcherSymbol.Prefix, CssMatcherSymbol.Subcode];
     if (
       this.value === attr.value &&
       matchers.indexOf(this.matcher) !== -1 &&
       matchers.indexOf(attr.matcher) !== -1
     ) {
-      return this.matcher === CssAttributeMatcher.Prefix ? this : attr;
+      return this.matcher === CssMatcherSymbol.Prefix ? this : attr;
     }
 
     if ( this.includes(attr) ) {
@@ -119,11 +119,11 @@ export class CssAttribute {
     if (
       this.value === attr.value &&
       (
-        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Prefix, CssAttributeMatcher.Suffix]) ||
-        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Prefix, CssAttributeMatcher.Occurrence]) ||
-        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Subcode, CssAttributeMatcher.Suffix]) ||
-        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Suffix, CssAttributeMatcher.Occurrence]) ||
-        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Subcode, CssAttributeMatcher.Occurrence])
+        sameMatchers([this.matcher, attr.matcher], [CssMatcherSymbol.Prefix, CssMatcherSymbol.Suffix]) ||
+        sameMatchers([this.matcher, attr.matcher], [CssMatcherSymbol.Prefix, CssMatcherSymbol.Occurrence]) ||
+        sameMatchers([this.matcher, attr.matcher], [CssMatcherSymbol.Subcode, CssMatcherSymbol.Suffix]) ||
+        sameMatchers([this.matcher, attr.matcher], [CssMatcherSymbol.Suffix, CssMatcherSymbol.Occurrence]) ||
+        sameMatchers([this.matcher, attr.matcher], [CssMatcherSymbol.Subcode, CssMatcherSymbol.Occurrence])
       )
     ) {
       return new CssAttribute(`[${this.name}="${this.value}"]`);
@@ -131,13 +131,13 @@ export class CssAttribute {
 
     if (
       (attr.value.startsWith(this.value) &&
-      this.matcher === CssAttributeMatcher.Prefix &&
-      attr.matcher === CssAttributeMatcher.Suffix) ||
+      this.matcher === CssMatcherSymbol.Prefix &&
+      attr.matcher === CssMatcherSymbol.Suffix) ||
       (this.value.startsWith(attr.value) &&
-      this.matcher === CssAttributeMatcher.Suffix &&
-      attr.matcher === CssAttributeMatcher.Prefix)
+      this.matcher === CssMatcherSymbol.Suffix &&
+      attr.matcher === CssMatcherSymbol.Prefix)
     ) {
-      const value = this.matcher === CssAttributeMatcher.Prefix ? attr.value : this.value;
+      const value = this.matcher === CssMatcherSymbol.Prefix ? attr.value : this.value;
       return new CssAttribute(`[${this.name}="${value}"]`);
     }
 
@@ -157,21 +157,21 @@ export class CssAttribute {
   }
 
   toString(): string {
-    if (this.matcher === CssAttributeMatcher.Presence) {
+    if (this.matcher === CssMatcherSymbol.Presence) {
       return `[${this.name}]`;
     }
     return  `[${this.name}${this.matcher.replace('=', '')}="${this.value}"]`;
   }
 
   private equalIncludes ( attr: CssAttribute ): boolean {
-    return attr.matcher === CssAttributeMatcher.Equal && this.value === attr.value;
+    return attr.matcher === CssMatcherSymbol.Equal && this.value === attr.value;
   }
 
   private prefixIncludes ( attr: CssAttribute ): boolean {
     if (
-      attr.matcher === CssAttributeMatcher.Prefix ||
-      attr.matcher === CssAttributeMatcher.Subcode ||
-      attr.matcher === CssAttributeMatcher.Equal
+      attr.matcher === CssMatcherSymbol.Prefix ||
+      attr.matcher === CssMatcherSymbol.Subcode ||
+      attr.matcher === CssMatcherSymbol.Equal
     ) {
       return attr.value.startsWith(this.value);
     }
@@ -181,8 +181,8 @@ export class CssAttribute {
 
   private suffixIncludes ( attr: CssAttribute ): boolean {
     if (
-      attr.matcher === CssAttributeMatcher.Suffix ||
-      attr.matcher === CssAttributeMatcher.Equal
+      attr.matcher === CssMatcherSymbol.Suffix ||
+      attr.matcher === CssMatcherSymbol.Equal
     ) {
       return attr.value.endsWith(this.value);
     }
@@ -192,12 +192,12 @@ export class CssAttribute {
 
   private containsIncludes ( attr: CssAttribute ): boolean {
     if (
-      attr.matcher === CssAttributeMatcher.Prefix ||
-      attr.matcher === CssAttributeMatcher.Suffix ||
-      attr.matcher === CssAttributeMatcher.Subcode ||
-      attr.matcher === CssAttributeMatcher.Occurrence ||
-      attr.matcher === CssAttributeMatcher.Contains ||
-      attr.matcher === CssAttributeMatcher.Equal
+      attr.matcher === CssMatcherSymbol.Prefix ||
+      attr.matcher === CssMatcherSymbol.Suffix ||
+      attr.matcher === CssMatcherSymbol.Subcode ||
+      attr.matcher === CssMatcherSymbol.Occurrence ||
+      attr.matcher === CssMatcherSymbol.Contains ||
+      attr.matcher === CssMatcherSymbol.Equal
     ) {
       return attr.value.indexOf(this.value) !== -1;
     }
@@ -207,8 +207,8 @@ export class CssAttribute {
 
   private subcodeIncludes ( attr: CssAttribute ): boolean {
     if (
-      attr.matcher === CssAttributeMatcher.Subcode ||
-      attr.matcher === CssAttributeMatcher.Equal
+      attr.matcher === CssMatcherSymbol.Subcode ||
+      attr.matcher === CssMatcherSymbol.Equal
     ) {
       return attr.value === this.value;
     }
@@ -218,8 +218,8 @@ export class CssAttribute {
 
   private occurrenceIncludes ( attr: CssAttribute ): boolean {
     if (
-      attr.matcher === CssAttributeMatcher.Occurrence ||
-      attr.matcher === CssAttributeMatcher.Equal
+      attr.matcher === CssMatcherSymbol.Occurrence ||
+      attr.matcher === CssMatcherSymbol.Equal
     ) {
       return attr.value === this.value;
     }

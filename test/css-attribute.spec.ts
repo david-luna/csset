@@ -1,5 +1,5 @@
 import { CssAttribute } from "../src/css-attribute";
-import { CssAttributeMatcher } from "../src/types";
+import { CssMatcherSymbol } from "../src/types";
 
 type ExpectDataset = { attr1: string, attr2: string, expected: string | boolean };
 type AttrOperation = 'includes' | 'union' | 'intersection';
@@ -45,7 +45,7 @@ describe('constructor', () => {
   });
 
   test('should create the instance when the selector is right', () => {
-    const matchers  = ['', '=', '|', '^', '$', '*', '~'] as CssAttributeMatcher[];
+    const matchers  = ['', '=', '|', '^', '$', '*', '~'] as CssMatcherSymbol[];
     const selectors = [
       '[attr=value]', '[attr=\'value\']', '[attr="value"]',
       '[attr^=value]', '[attr^=\'value\']', '[attr^="value"]',

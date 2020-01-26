@@ -10,7 +10,7 @@ export interface CssToken {
   value: string;
 }
 
-export enum CssAttributeMatcher {
+export enum CssMatcherSymbol {
   Presence   = '',
   Equal      = '=',
   Prefix     = '^',
@@ -22,6 +22,6 @@ export enum CssAttributeMatcher {
 
 export interface CssAttribute {
   name   : string;
-  matcher: CssAttributeMatcher;
+  matcher: CssMatcherSymbol;
   value? : string;
 }

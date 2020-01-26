@@ -2,7 +2,7 @@ import {
   CssToken,
   CssAttribute,
   CssTokeType,
-  CssAttributeMatcher
+  CssMatcherSymbol
 } from './types';
 
 const CSS_TOKEN_MATCHERS = [
@@ -150,13 +150,13 @@ export class CssRule {
       const currVal = `${attribCurr.value}`;
 
       switch (attribCurr.matcher) {
-        case CssAttributeMatcher.Presence:
-        case CssAttributeMatcher.Equal:
+        case CssMatcherSymbol.Presence:
+        case CssMatcherSymbol.Equal:
           if ( nextVal !== currVal) {
             throw SyntaxError(`Attribute ${attribNext.name} cannot equal to ${nextVal} and ${currVal} at the same time`);
           }
           break;
-        case CssAttributeMatcher.Prefix:
+        case CssMatcherSymbol.Prefix:
           let mergedPref = nextVal.startsWith(currVal) ? nextVal : currVal.startsWith(nextVal) ? currVal : null;
 
           if (!mergedPref) {
@@ -164,7 +164,7 @@ export class CssRule {
           }
           attribNext.value = mergedPref;
           break;
-        case CssAttributeMatcher.Suffix:
+        case CssMatcherSymbol.Suffix:
           let mergedSuff = nextVal.endsWith(currVal) ? nextVal : currVal.endsWith(nextVal) ? currVal : null;
 
           if (!mergedSuff) {
@@ -172,13 +172,13 @@ export class CssRule {
           }
           attribNext.value = mergedSuff;
           break;
-        case CssAttributeMatcher.Subcode:
+        case CssMatcherSymbol.Subcode:
             if ( nextVal !== currVal) {
               throw SyntaxError(`Attribute ${attribNext.name} cannot have ${nextVal} and ${currVal} as subcode at the same time`);
             }
             break;
-        case CssAttributeMatcher.Contains:
-        case CssAttributeMatcher.Occurrence:
+        case CssMatcherSymbol.Contains:
+        case CssMatcherSymbol.Occurrence:
           // TODO: here an attr may contain both values or have different occurrences
           // now doing nothing the value is replaced
         default:
@@ -197,12 +197,12 @@ export class CssRule {
 
     let name    = matchEx ? parts[0].slice(0, -1) : parts[0];
     let value   = parts[1] || '';
-    let matcher = ((matchEx && matchEx[0]) || (value ? '=' : '')) as CssAttributeMatcher;
+    let matcher = ((matchEx && matchEx[0]) || (value ? '=' : '')) as CssMatcherSymbol;
 
     if (!nameRx.test(name)) {
       throw new SyntaxError(`Invalid atrribute name in ${attr}`);
     }
-    if (matcher !== CssAttributeMatcher.Presence && !valueRx.test(value)) {
+    if (matcher !== CssMatcherSymbol.Presence && !valueRx.test(value)) {
       throw new SyntaxError(`Invalid atrribute value in ${attr}`);
     }
 
