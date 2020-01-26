@@ -1,5 +1,13 @@
 import { CssAttributeMatcher } from './types';
 
+const logger = (att1: CssAttribute, att2: CssAttribute) : (...args:any[]) => void => {
+  if (att1.matcher === '^' && att2.matcher ==='$') {
+    return (...args) => console.log(args);
+  }
+  // console.log('/dev/null');
+  return () => void 0;
+};
+
 const sameMatchers = (matchers: CssAttributeMatcher[], expected: CssAttributeMatcher[]) => {
   const sortedMatchers = matchers.sort();
   const sortedExpected = expected.sort();
@@ -103,6 +111,8 @@ export class CssAttribute {
        return null;
     }
 
+    const log = logger(this, attr);
+
     // Sepcial cases where
     // 1. starting and ending with the same vale
     // 2. starting and occurence with the same vale
@@ -119,15 +129,29 @@ export class CssAttribute {
       return new CssAttribute(`[${this.name}="${this.value}"]`);
     }
 
+    if (
+      (attr.value.startsWith(this.value) &&
+      this.matcher === CssAttributeMatcher.Prefix &&
+      attr.matcher === CssAttributeMatcher.Suffix) ||
+      (this.value.startsWith(attr.value) &&
+      this.matcher === CssAttributeMatcher.Suffix &&
+      attr.matcher === CssAttributeMatcher.Prefix)
+    ) {
+      const value = this.matcher === CssAttributeMatcher.Prefix ? attr.value : this.value;
+      return new CssAttribute(`[${this.name}="${value}"]`);
+    }
+
     if ( this.includes(attr) ) {
-      // console.log(`${this} \u2283 ${attr}`);
+      log(`${this} \u2283 ${attr}`);
       return attr;
     }
 
     if ( attr.includes(this) ) {
-      // console.log(`${this} \u2282 ${attr}`);
+      log(`${this} \u2282 ${attr}`);
       return this;
     }
+
+    log(`${this} nothing ${attr}`);
 
     return null;
   }
