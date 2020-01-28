@@ -7,25 +7,49 @@ describe('contains matcher', () => {
     test('supersetOf should work with other types', () => {
       const matcher = new CssContainsMatcher('value');
       const dataset = [
-        { matcher: matcherFrom('')        , expected: false },
-        { matcher: matcherFrom('=value')  , expected: true },
-        { matcher: matcherFrom('=Xvalue') , expected: true },
-        { matcher: matcherFrom('=valueX') , expected: true },
-        { matcher: matcherFrom('^=value') , expected: true },
-        { matcher: matcherFrom('^=Xvalue'), expected: true },
-        { matcher: matcherFrom('^=valueX'), expected: true },
-        { matcher: matcherFrom('$=value') , expected: true },
-        { matcher: matcherFrom('$=Xvalue'), expected: true },
-        { matcher: matcherFrom('$=valueX'), expected: true },
-        { matcher: matcherFrom('*=value') , expected: true },
-        { matcher: matcherFrom('*=Xvalue'), expected: true },
-        { matcher: matcherFrom('*=valueX'), expected: true },
-        { matcher: matcherFrom('~=value') , expected: true },
-        { matcher: matcherFrom('~=Xvalue'), expected: true },
-        { matcher: matcherFrom('~=valueX'), expected: true },
-        { matcher: matcherFrom('|=value') , expected: true },
-        { matcher: matcherFrom('|=Xvalue'), expected: true },
-        { matcher: matcherFrom('|=valueX'), expected: true },
+        { matcher: matcherFrom('')            , expected: false },
+        // Combinations of equal
+        { matcher: matcherFrom('=value')      , expected: true },
+        { matcher: matcherFrom('=Xvalue')     , expected: true },
+        { matcher: matcherFrom('=valueX')     , expected: true },
+        { matcher: matcherFrom('=XvalueX')    , expected: true },
+        { matcher: matcherFrom('=XXXXXXX')    , expected: false },
+        { matcher: matcherFrom('=XXaluXX')    , expected: false },
+        // Combinations of prefix
+        { matcher: matcherFrom('^=value')     , expected: true },
+        { matcher: matcherFrom('^=Xvalue')    , expected: true },
+        { matcher: matcherFrom('^=valueX')    , expected: true },
+        { matcher: matcherFrom('^=XvalueX')   , expected: true },
+        { matcher: matcherFrom('^=XXXXXXX')   , expected: false },
+        { matcher: matcherFrom('^=XXaluXX')   , expected: false },
+        // Combinations of suffix
+        { matcher: matcherFrom('$=value')     , expected: true },
+        { matcher: matcherFrom('$=Xvalue')    , expected: true },
+        { matcher: matcherFrom('$=valueX')    , expected: true },
+        { matcher: matcherFrom('$=XvalueX')   , expected: true },
+        { matcher: matcherFrom('$=XXXXXXX')   , expected: false },
+        { matcher: matcherFrom('$=XXaluXX')   , expected: false },
+        // Combinations of contains
+        { matcher: matcherFrom('*=value')     , expected: true },
+        { matcher: matcherFrom('*=Xvalue')    , expected: true },
+        { matcher: matcherFrom('*=valueX')    , expected: true },
+        { matcher: matcherFrom('*=XvalueX')   , expected: true },
+        { matcher: matcherFrom('*=XXXXXXX')   , expected: false },
+        { matcher: matcherFrom('*=XXaluXX')   , expected: false },
+        // Combinations of occurence
+        { matcher: matcherFrom('~=value')     , expected: true },
+        { matcher: matcherFrom('~=Xvalue')    , expected: true },
+        { matcher: matcherFrom('~=valueX')    , expected: true },
+        { matcher: matcherFrom('~=XvalueX')   , expected: true },
+        { matcher: matcherFrom('~=XXXXXXX')   , expected: false },
+        { matcher: matcherFrom('~=XXaluXX')   , expected: false },
+        // Combinations of subcode
+        { matcher: matcherFrom('|=value')     , expected: true },
+        { matcher: matcherFrom('|=Xvalue')    , expected: true },
+        { matcher: matcherFrom('|=valueX')    , expected: true },
+        { matcher: matcherFrom('|=XvalueX')   , expected: true },
+        { matcher: matcherFrom('|=XXXXXXX')   , expected: false },
+        { matcher: matcherFrom('|=XXaluXX')   , expected: false },
       ];
 
       checkOperation(matcher, 'supersetOf')(dataset);

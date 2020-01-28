@@ -34,34 +34,4 @@ export class CssContainsMatcher extends CssAttributeMatcher {
 
     return super.union(matcher);
   }
-
-  /**
-   * Utility function to get the common longest string of 2
-   * @param a 
-   * @param b 
-   */
-  private longestSubstring (a: string, b: string): string {
-    let longest: string = '';
-
-    // loop through the first string
-    for (var i = 0; i < a.length; ++i) {
-      // loop through the second string
-      for (var j = 0; j < b.length; ++j) {
-        // if it's the same letter
-        if (a[i] === b[j]) {
-          var str = a[i];
-          var k = 1;
-          // keep going until the letters no longer match, or we reach end
-          while (i+k < a.length && j+k < b.length // haven't reached end
-                && a[i+k] === b[j+k]) { // same letter
-            str += a[i+k];
-            ++k;
-          }
-          // if this substring is longer than the longest, save it as the longest
-          if (str.length > longest.length) { longest = str }
-        }
-      }
-    }
-    return longest;
-  }
 }
