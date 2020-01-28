@@ -18,18 +18,24 @@ export class CssAttributeMatcher {
   }
 
   union ( matcher: CssAttributeMatcher ): string | null {
+    // If one is superset then it is the union
     if ( this.supersetOf(matcher) ) {
       return `${this}`;
-    }
-
-    if ( matcher.supersetOf(this) ) {
+    } else if ( matcher.supersetOf(this) ) {
       return `${matcher}`;
     }
 
-    if ( this.value.includes(matcher.value) || matcher.value.includes(this.value) ) {
-      const value = this.value.includes(matcher.value) ? matcher.value : this.value;
+    // if ( this.value.includes(matcher.value) || matcher.value.includes(this.value) ) {
+    //   const value = this.value.includes(matcher.value) ? matcher.value : this.value;
 
-      return `*="${value}"`;
+    //   return `*="${value}"`;
+    // }
+    // If they have a common substring fallback to contains matcher
+    // TODO: add min lenght for this?
+    let substring = this.longestSubstring(this.value, matcher.value);
+
+    if ( substring.length ) {
+      return `*="${substring}"`;
     }
 
     return null;
@@ -42,5 +48,35 @@ export class CssAttributeMatcher {
       return ``
     }
     return `${this.symbol}="${this.value}"`.replace(/^=/, '');
+  }
+
+  /**
+   * Utility function to get the common longest string of 2
+   * @param a 
+   * @param b 
+   */
+  protected longestSubstring (a: string, b: string): string {
+    let longest: string = '';
+
+    // loop through the first string
+    for (var i = 0; i < a.length; ++i) {
+      // loop through the second string
+      for (var j = 0; j < b.length; ++j) {
+        // if it's the same letter
+        if (a[i] === b[j]) {
+          var str = a[i];
+          var k = 1;
+          // keep going until the letters no longer match, or we reach end
+          while (i+k < a.length && j+k < b.length // haven't reached end
+                && a[i+k] === b[j+k]) { // same letter
+            str += a[i+k];
+            ++k;
+          }
+          // if this substring is longer than the longest, save it as the longest
+          if (str.length > longest.length) { longest = str }
+        }
+      }
+    }
+    return longest;
   }
 }

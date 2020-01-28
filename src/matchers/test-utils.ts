@@ -1,5 +1,5 @@
 import { CssAttributeMatcher } from "../css-attribute-matcher";
-import { CssMatcherFactory } from './matcher-factory';
+import { CssMatcherFactory } from './css-matcher-factory';
 
 type MatcherTestSet = {
   matcher: CssAttributeMatcher,
@@ -18,7 +18,7 @@ export const matcherFrom = (s: string): CssAttributeMatcher => {
 }
 
 export const checkOperation = (matcher: CssAttributeMatcher, op: MatcherOperations): (...a: any[]) => void => {
-  return (dataset:MatcherTestSet[]) => {
+  return (dataset: MatcherTestSet[]) => {
     dataset.forEach((data) => {
       const symbol  = operationSymbols[op];
       const result  = `${matcher} ${symbol} ${data.matcher} = ${matcher[op](data.matcher)}`;
