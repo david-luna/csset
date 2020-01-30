@@ -1,5 +1,5 @@
-import { CssAttributeMatcher } from "../../src/css-attribute-matcher";
-import { CssMatcherFactory } from '../../src/matchers/css-matcher-factory';
+import { CssAttributeMatcher } from "../src/css-attribute-matcher";
+import { CssMatcherFactory } from '../src/matchers/css-matcher-factory';
 
 type MatcherTestSet = {
   matcher: CssAttributeMatcher,
