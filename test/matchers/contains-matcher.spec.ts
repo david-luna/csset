@@ -1,4 +1,4 @@
-import { CssContainsMatcher } from "./contains-matcher";
+import { CssContainsMatcher } from "../../src/matchers/contains-matcher";
 import { checkOperation, matcherFrom } from './test-utils';
 
 

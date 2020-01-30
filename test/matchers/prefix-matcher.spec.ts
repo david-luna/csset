@@ -1,31 +1,30 @@
-import { CssSuffixMatcher } from "./suffix-matcher";
+import { CssPrefixMatcher } from "../../src/matchers/prefix-matcher";
 import { checkOperation, matcherFrom } from './test-utils';
 
 
-describe('suffix matcher', () => {
+describe('prefix matcher', () => {
   describe('supersetOf', () => {
     test('supersetOf should work with same value and other types', () => {
-      const matcher = new CssSuffixMatcher('value');
-
+      const matcher = new CssPrefixMatcher('value');
       const dataset = [
-        { matcher: matcherFrom('')        , expected: false },
-        // Combinations of equals
+        { matcher: matcherFrom('')         , expected: false },
+        // Combinations of equal
         { matcher: matcherFrom('=value')   , expected: true },
-        { matcher: matcherFrom('=Xvalue')  , expected: true },
-        { matcher: matcherFrom('=valueX')  , expected: false },
+        { matcher: matcherFrom('=Xvalue')  , expected: false },
+        { matcher: matcherFrom('=valueX')  , expected: true },
         { matcher: matcherFrom('=XvalueX') , expected: false },
         { matcher: matcherFrom('=XXXXXXX') , expected: false },
         { matcher: matcherFrom('=XXaluXX') , expected: false },
         // Combinations of prefix
-        { matcher: matcherFrom('^=value')  , expected: false },
+        { matcher: matcherFrom('^=value')  , expected: true },
         { matcher: matcherFrom('^=Xvalue') , expected: false },
-        { matcher: matcherFrom('^=valueX') , expected: false },
+        { matcher: matcherFrom('^=valueX') , expected: true },
         { matcher: matcherFrom('^=XvalueX'), expected: false },
         { matcher: matcherFrom('^=XXXXXXX'), expected: false },
         { matcher: matcherFrom('^=XXaluXX'), expected: false },
         // Combinations of suffix
-        { matcher: matcherFrom('$=value')  , expected: true },
-        { matcher: matcherFrom('$=Xvalue') , expected: true },
+        { matcher: matcherFrom('$=value')  , expected: false },
+        { matcher: matcherFrom('$=Xvalue') , expected: false },
         { matcher: matcherFrom('$=valueX') , expected: false },
         { matcher: matcherFrom('$=XvalueX'), expected: false },
         { matcher: matcherFrom('$=XXXXXXX'), expected: false },
@@ -44,10 +43,10 @@ describe('suffix matcher', () => {
         { matcher: matcherFrom('~=XvalueX'), expected: false },
         { matcher: matcherFrom('~=XXXXXXX'), expected: false },
         { matcher: matcherFrom('~=XXaluXX'), expected: false },
-        // Combinations of prefix
-        { matcher: matcherFrom('|=value')  , expected: false },
+        // Combinations of subcode
+        { matcher: matcherFrom('|=value')  , expected: true },
         { matcher: matcherFrom('|=Xvalue') , expected: false },
-        { matcher: matcherFrom('|=valueX') , expected: false },
+        { matcher: matcherFrom('|=valueX') , expected: true },
         { matcher: matcherFrom('|=XvalueX'), expected: false },
         { matcher: matcherFrom('|=XXXXXXX'), expected: false },
         { matcher: matcherFrom('|=XXaluXX'), expected: false },
@@ -59,26 +58,26 @@ describe('suffix matcher', () => {
 
   describe('union', () => {
     test('union should work with same other types', () => {
-      const matcher = new CssSuffixMatcher('value');
+      const matcher = new CssPrefixMatcher('value');
       const dataset = [
         { matcher: matcherFrom('')        , expected: '' },
         // Combinations of equal
-        { matcher: matcherFrom('=value')   , expected: '$="value"' },
-        { matcher: matcherFrom('=Xvalue')  , expected: '$="value"' },
-        { matcher: matcherFrom('=valueX')  , expected: '*="value"' },
+        { matcher: matcherFrom('=value')   , expected: '^="value"' },
+        { matcher: matcherFrom('=Xvalue')  , expected: '*="value"' },
+        { matcher: matcherFrom('=valueX')  , expected: '^="value"' },
         { matcher: matcherFrom('=XvalueX') , expected: '*="value"' },
         { matcher: matcherFrom('=XXXXXXX') , expected: 'null' },
         { matcher: matcherFrom('=XXaluXX') , expected: '*="alu"' },
         // Combinations of prefix
-        { matcher: matcherFrom('^=value')  , expected: '*="value"' },
+        { matcher: matcherFrom('^=value')  , expected: '^="value"' },
         { matcher: matcherFrom('^=Xvalue') , expected: '*="value"' },
-        { matcher: matcherFrom('^=valueX') , expected: '*="value"' },
+        { matcher: matcherFrom('^=valueX') , expected: '^="value"' },
         { matcher: matcherFrom('^=XvalueX'), expected: '*="value"' },
         { matcher: matcherFrom('^=XXXXXXX'), expected: 'null' },
         { matcher: matcherFrom('^=XXaluXX'), expected: '*="alu"' },
         // Combinations of suffix
-        { matcher: matcherFrom('$=value')  , expected: '$="value"' },
-        { matcher: matcherFrom('$=Xvalue') , expected: '$="value"' },
+        { matcher: matcherFrom('$=value')  , expected: '*="value"' },
+        { matcher: matcherFrom('$=Xvalue') , expected: '*="value"' },
         { matcher: matcherFrom('$=valueX') , expected: '*="value"' },
         { matcher: matcherFrom('$=XvalueX'), expected: '*="value"' },
         { matcher: matcherFrom('$=XXXXXXX'), expected: 'null' },
@@ -90,17 +89,17 @@ describe('suffix matcher', () => {
         { matcher: matcherFrom('*=XvalueX'), expected: '*="value"' },
         { matcher: matcherFrom('*=XXXXXXX'), expected: 'null' },
         { matcher: matcherFrom('*=XXaluXX'), expected: '*="alu"' },
-        // Combinations of occurrence
+        // Combinations of occurence
         { matcher: matcherFrom('~=value')  , expected: '*="value"' },
         { matcher: matcherFrom('~=Xvalue') , expected: '*="value"' },
         { matcher: matcherFrom('~=valueX') , expected: '*="value"' },
         { matcher: matcherFrom('~=XvalueX'), expected: '*="value"' },
         { matcher: matcherFrom('~=XXXXXXX'), expected: 'null' },
         { matcher: matcherFrom('~=XXaluXX'), expected: '*="alu"' },
-        // Combinations of prefix
-        { matcher: matcherFrom('|=value')  , expected: '*="value"' },
-        { matcher: matcherFrom('|=Xvalue') , expected: '*="value"' },
-        { matcher: matcherFrom('|=valueX') , expected: '*="value"' },
+        // Combinations of subcode
+        { matcher: matcherFrom('|=value') , expected: '^="value"' },
+        { matcher: matcherFrom('|=Xvalue'), expected: '*="value"' },
+        { matcher: matcherFrom('|=valueX'), expected: '^="value"' },
         { matcher: matcherFrom('|=XvalueX'), expected: '*="value"' },
         { matcher: matcherFrom('|=XXXXXXX'), expected: 'null' },
         { matcher: matcherFrom('|=XXaluXX'), expected: '*="alu"' },

@@ -1,4 +1,4 @@
-import { CssPresenceMatcher } from "./presence-matcher";
+import { CssPresenceMatcher } from "../../src/matchers/presence-matcher";
 import { checkOperation, matcherFrom } from './test-utils';
 
 
