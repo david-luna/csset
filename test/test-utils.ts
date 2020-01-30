@@ -2,7 +2,7 @@ import { CssAttributeMatcher } from "../src/css-attribute-matcher";
 import { CssMatcherFactory } from '../src/matchers/css-matcher-factory';
 
 type MatcherTestSet = {
-  matcher: CssAttributeMatcher,
+  matcher: string,
   expected: boolean | string,
 };
 type MatcherOperations = 'supersetOf' | 'subsetOf' | 'union'; // | 'intersection';
@@ -13,15 +13,12 @@ export const operationSymbols: any = {
   intersection: "\u2229",
 };
 
-export const matcherFrom = (s: string): CssAttributeMatcher => {
-  return CssMatcherFactory.create(s);
-}
-
 export const checkOperation = (matcher: CssAttributeMatcher, op: MatcherOperations): (...a: any[]) => void => {
   return (dataset: MatcherTestSet[]) => {
     dataset.forEach((data) => {
+      const testMatcher = CssMatcherFactory.create(data.matcher);
       const symbol  = operationSymbols[op];
-      const result  = `${matcher} ${symbol} ${data.matcher} = ${matcher[op](data.matcher)}`;
+      const result  = `${matcher} ${symbol} ${data.matcher} = ${matcher[op](testMatcher)}`;
       const message = `${matcher} ${symbol} ${data.matcher} = ${data.expected}`;
 
       expect(result).toEqual(message);
