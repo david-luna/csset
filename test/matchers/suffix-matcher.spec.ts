@@ -1,5 +1,5 @@
 import { CssSuffixMatcher } from "../../src/matchers/suffix-matcher";
-import { checkOperation, matcherFrom } from '../test-utils';
+import { checkOperation } from '../test-utils';
 
 
 describe('suffix matcher', () => {

@@ -1,5 +1,5 @@
 import { CssSubcodeMatcher } from '../../src/matchers/subcode-matcher';
-import { checkOperation, matcherFrom } from '../test-utils';
+import { checkOperation } from '../test-utils';
 
 
 describe('subcode matcher', () => {

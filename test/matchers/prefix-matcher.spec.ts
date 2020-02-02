@@ -1,5 +1,5 @@
 import { CssPrefixMatcher } from "../../src/matchers/prefix-matcher";
-import { checkOperation, matcherFrom } from '../test-utils';
+import { checkOperation } from '../test-utils';
 
 
 describe('prefix matcher', () => {

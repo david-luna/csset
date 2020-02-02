@@ -1,5 +1,5 @@
 import { CssEqualMatcher } from "../../src/matchers/equal-matcher";
-import { checkOperation, matcherFrom } from '../test-utils';
+import { checkOperation } from '../test-utils';
 
 
 describe('equal matcher', () => {
