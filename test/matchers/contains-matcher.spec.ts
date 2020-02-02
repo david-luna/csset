@@ -57,7 +57,7 @@ describe('contains matcher', () => {
   });
 
   describe('union', () => {
-    test('union should work with same other types', () => {
+    test('union should work with same or other types', () => {
       const matcher = new CssContainsMatcher('value');
       const dataset = [
         { matcher: ''          , expected: '' },
@@ -106,6 +106,59 @@ describe('contains matcher', () => {
       ];
 
       checkOperation(matcher, 'union')(dataset);
+    });
+  });
+
+  describe('intersection', () => {
+    test('intersection should work with same or other types', () => {
+      const matcher = new CssContainsMatcher('value');
+      const dataset = [
+        { matcher: ''          , expected: '*="value"' },
+        // Combinations of equal
+        { matcher: '=value'    , expected: '="value"' },
+        { matcher: '=Xvalue'   , expected: '="Xvalue"' },
+        { matcher: '=valueX'   , expected: '="valueX"' },
+        { matcher: '=XvalueX'  , expected: '="XvalueX"' },
+        { matcher: '=XXXXXXX'  , expected: 'null' },
+        { matcher: '=XXaluXX'  , expected: 'null' },
+        // Combinations of prefix
+        { matcher: '^=value'   , expected: '^="value"' },
+        { matcher: '^=Xvalue'  , expected: '^="Xvalue"' },
+        { matcher: '^=valueX'  , expected: '^="valueX"' },
+        { matcher: '^=XvalueX' , expected: '^="XvalueX"' },
+        { matcher: '^=XXXXXXX' , expected: 'null' },
+        { matcher: '^=XXaluXX' , expected: 'null' },
+        // Combinations of suffix
+        { matcher: '$=value'   , expected: '$="value"' },
+        { matcher: '$=Xvalue'  , expected: '$="Xvalue"' },
+        { matcher: '$=valueX'  , expected: '$="valueX"' },
+        { matcher: '$=XvalueX' , expected: '$="XvalueX"' },
+        { matcher: '$=XXXXXXX' , expected: 'null' },
+        { matcher: '$=XXaluXX' , expected: 'null' },
+        // Combinations of contains
+        { matcher: '*=value'   , expected: '*="value"' },
+        { matcher: '*=Xvalue'  , expected: '*="Xvalue"' },
+        { matcher: '*=valueX'  , expected: '*="valueX"' },
+        { matcher: '*=XvalueX' , expected: '*="XvalueX"' },
+        { matcher: '*=XXXXXXX' , expected: 'null' },
+        { matcher: '*=XXaluXX' , expected: 'null' },
+        // Combinations of occurence
+        { matcher: '~=value'   , expected: '~="value"' },
+        { matcher: '~=Xvalue'  , expected: '~="Xvalue"' },
+        { matcher: '~=valueX'  , expected: '~="valueX"' },
+        { matcher: '~=XvalueX' , expected: '~="XvalueX"' },
+        { matcher: '~=XXXXXXX' , expected: 'null' },
+        { matcher: '~=XXaluXX' , expected: 'null' },
+        // Combinations of subcode
+        { matcher: '|=value'   , expected: '|="value"' },
+        { matcher: '|=Xvalue'  , expected: '|="Xvalue"' },
+        { matcher: '|=valueX'  , expected: '|="valueX"' },
+        { matcher: '|=XvalueX' , expected: '|="XvalueX"' },
+        { matcher: '|=XXXXXXX' , expected: 'null' },
+        { matcher: '|=XXaluXX' , expected: 'null' },
+      ];
+
+      checkOperation(matcher, 'intersection')(dataset);
     });
   });
 });

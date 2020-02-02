@@ -25,12 +25,6 @@ export class CssAttributeMatcher {
       return `${matcher}`;
     }
 
-    // if ( this.value.includes(matcher.value) || matcher.value.includes(this.value) ) {
-    //   const value = this.value.includes(matcher.value) ? matcher.value : this.value;
-
-    //   return `*="${value}"`;
-    // }
-    // If they have a common substring fallback to contains matcher
     // TODO: add min lenght for this?
     let substring = this.longestSubstring(this.value, matcher.value);
 
@@ -41,7 +35,16 @@ export class CssAttributeMatcher {
     return null;
   }
 
-  // intersection ( matcher: CssAttributeMatcher ): string | null;
+  intersection ( matcher: CssAttributeMatcher ): string | null {
+    // If one is superset then the other is the intersection
+    if ( this.supersetOf(matcher) ) {
+      return `${matcher}`;
+    } else if ( matcher.supersetOf(this) ) {
+      return `${this}`;
+    }
+
+    return null;
+  }
 
   toString(): string {
     if (this.symbol === CssMatcherSymbol.Presence) {

@@ -17,4 +17,24 @@ export class CssOccurrenceMatcher extends CssAttributeMatcher {
 
     return false;
   }
+
+  intersection ( matcher: CssAttributeMatcher ): string | null {
+    
+    if ( this.value === matcher.value ) {
+      if (matcher.symbol === CssMatcherSymbol.Prefix ) {
+        return `^="${this.value} "`;
+      }
+
+      if (matcher.symbol === CssMatcherSymbol.Suffix ) {
+        return `$=" ${this.value}"`;
+      }
+
+      if (matcher.symbol === CssMatcherSymbol.Subcode ) {
+        return `="${this.value}"`;
+      }
+    }
+    
+
+    return super.intersection(matcher);
+  }
 }

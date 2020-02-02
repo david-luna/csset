@@ -5,7 +5,7 @@ type MatcherTestSet = {
   matcher: string,
   expected: boolean | string,
 };
-type MatcherOperations = 'supersetOf' | 'subsetOf' | 'union'; // | 'intersection';
+type MatcherOperations = 'supersetOf' | 'subsetOf' | 'union' | 'intersection';
 
 export const operationSymbols: any = {
   supersetOf  : "\u2283",
@@ -18,8 +18,8 @@ export const checkOperation = (matcher: CssAttributeMatcher, op: MatcherOperatio
     dataset.forEach((data) => {
       const testMatcher = CssMatcherFactory.create(data.matcher);
       const symbol  = operationSymbols[op];
-      const result  = `${matcher} ${symbol} ${data.matcher} = ${matcher[op](testMatcher)}`;
-      const message = `${matcher} ${symbol} ${data.matcher} = ${data.expected}`;
+      const result  = `${matcher} ${symbol} ${data.matcher} <=> ${matcher[op](testMatcher)}`;
+      const message = `${matcher} ${symbol} ${data.matcher} <=> ${data.expected}`;
 
       expect(result).toEqual(message);
     });
