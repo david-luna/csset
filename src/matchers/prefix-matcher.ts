@@ -27,4 +27,25 @@ export class CssPrefixMatcher extends CssAttributeMatcher {
 
     return super.union(matcher);
   }
+
+  intersection ( matcher: CssAttributeMatcher ): string | null {
+    
+    if ( this.value === matcher.value ) {
+      if (matcher.symbol === CssMatcherSymbol.Occurrence ) {
+        return `^="${this.value} "`;
+      }
+
+      if (matcher.symbol === CssMatcherSymbol.Subcode ) {
+        return `^="${this.value}"`;
+      }
+    }
+
+    if ( matcher.value.startsWith(this.value) ) {
+      if (matcher.symbol === CssMatcherSymbol.Subcode ) {
+        return `^="${matcher.value}"`;
+      }
+    }
+
+    return super.intersection(matcher);
+  }
 }

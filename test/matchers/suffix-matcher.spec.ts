@@ -58,7 +58,7 @@ describe('suffix matcher', () => {
   });
 
   describe('union', () => {
-    test('union should work with same other types', () => {
+    test('union should work with same or other types', () => {
       const matcher = new CssSuffixMatcher('value');
       const dataset = [
         { matcher: ''       , expected: '' },
@@ -97,7 +97,7 @@ describe('suffix matcher', () => {
         { matcher: '~=XvalueX', expected: '*="value"' },
         { matcher: '~=XXXXXXX', expected: 'null' },
         { matcher: '~=XXaluXX', expected: '*="alu"' },
-        // Combinations of prefix
+        // Combinations of subcode
         { matcher: '|=value' , expected: '*="value"' },
         { matcher: '|=Xvalue', expected: '*="value"' },
         { matcher: '|=valueX', expected: '*="value"' },
@@ -107,6 +107,59 @@ describe('suffix matcher', () => {
       ];
 
       checkOperation(matcher, 'union')(dataset);
+    });
+  });
+
+  describe('intersection', () => {
+    test('intersection should work with same or other types', () => {
+      const matcher = new CssSuffixMatcher('value');
+      const dataset = [
+        { matcher: ''         , expected: '$="value"' },
+        // Combinations of equal
+        { matcher: '=value'   , expected: '="value"' },
+        { matcher: '=Xvalue'  , expected: '="Xvalue"' },
+        { matcher: '=valueX'  , expected: 'null' },
+        { matcher: '=XvalueX' , expected: 'null' },
+        { matcher: '=XXXXXXX' , expected: 'null' },
+        { matcher: '=XXaluXX' , expected: 'null' },
+        // Combinations of prefix
+        { matcher: '^=value'  , expected: 'null' },
+        { matcher: '^=Xvalue' , expected: 'null' },
+        { matcher: '^=valueX' , expected: 'null' },
+        { matcher: '^=XvalueX', expected: 'null' },
+        { matcher: '^=XXXXXXX', expected: 'null' },
+        { matcher: '^=XXaluXX', expected: 'null' },
+        // Combinations of suffix
+        { matcher: '$=value'  , expected: '$="value"' },
+        { matcher: '$=Xvalue' , expected: '$="Xvalue"' },
+        { matcher: '$=valueX' , expected: 'null' },
+        { matcher: '$=XvalueX', expected: 'null' },
+        { matcher: '$=XXXXXXX', expected: 'null' },
+        { matcher: '$=XXaluXX', expected: 'null' },
+        // Combinations of contains
+        { matcher: '*=value'  , expected: '$="value"' },
+        // { matcher: '*=Xvalue' , expected: '$="Xvalue"' }, // TODO: check
+        { matcher: '*=valueX' , expected: 'null' },
+        { matcher: '*=XvalueX', expected: 'null' },
+        { matcher: '*=XXXXXXX', expected: 'null' },
+        { matcher: '*=XXaluXX', expected: 'null' },
+        // Combinations of occurrence
+        // { matcher: '~=value'  , expected: '$=" value"' }, // TODO: check
+        { matcher: '~=Xvalue' , expected: 'null' },
+        { matcher: '~=valueX' , expected: 'null' },
+        { matcher: '~=XvalueX', expected: 'null' },
+        { matcher: '~=XXXXXXX', expected: 'null' },
+        { matcher: '~=XXaluXX', expected: 'null' },
+        // Combinations of subcode
+        { matcher: '|=value'  , expected: 'null' },
+        { matcher: '|=Xvalue' , expected: 'null' },
+        { matcher: '|=valueX' , expected: 'null' },
+        { matcher: '|=XvalueX', expected: 'null' },
+        { matcher: '|=XXXXXXX', expected: 'null' },
+        { matcher: '|=XXaluXX', expected: 'null' },
+      ];
+
+      checkOperation(matcher, 'intersection')(dataset);
     });
   });
 });

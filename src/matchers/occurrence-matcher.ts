@@ -33,7 +33,6 @@ export class CssOccurrenceMatcher extends CssAttributeMatcher {
         return `="${this.value}"`;
       }
     }
-    
 
     return super.intersection(matcher);
   }
