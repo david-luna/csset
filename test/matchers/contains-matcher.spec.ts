@@ -67,42 +67,42 @@ describe('contains matcher', () => {
         { matcher: '=valueX'   , expected: '*="value"' },
         { matcher: '=XvalueX'  , expected: '*="value"' },
         { matcher: '=XXXXXXX'  , expected: 'null' },
-        { matcher: '=XXaluXX'  , expected: '*="alu"' },
+        { matcher: '=XXaluXX'  , expected: 'null' },
         // Combinations of prefix
         { matcher: '^=value'   , expected: '*="value"' },
         { matcher: '^=Xvalue'  , expected: '*="value"' },
         { matcher: '^=valueX'  , expected: '*="value"' },
         { matcher: '^=XvalueX' , expected: '*="value"' },
         { matcher: '^=XXXXXXX' , expected: 'null' },
-        { matcher: '^=XXaluXX' , expected: '*="alu"' },
+        { matcher: '^=XXaluXX' , expected: 'null' },
         // Combinations of suffix
         { matcher: '$=value'   , expected: '*="value"' },
         { matcher: '$=Xvalue'  , expected: '*="value"' },
         { matcher: '$=valueX'  , expected: '*="value"' },
         { matcher: '$=XvalueX' , expected: '*="value"' },
         { matcher: '$=XXXXXXX' , expected: 'null' },
-        { matcher: '$=XXaluXX' , expected: '*="alu"' },
+        { matcher: '$=XXaluXX' , expected: 'null' },
         // Combinations of contains
         { matcher: '*=value'   , expected: '*="value"' },
         { matcher: '*=Xvalue'  , expected: '*="value"' },
         { matcher: '*=valueX'  , expected: '*="value"' },
         { matcher: '*=XvalueX' , expected: '*="value"' },
         { matcher: '*=XXXXXXX' , expected: 'null' },
-        { matcher: '*=XXaluXX' , expected: '*="alu"' },
+        { matcher: '*=XXaluXX' , expected: 'null' },
         // Combinations of occurence
         { matcher: '~=value'   , expected: '*="value"' },
         { matcher: '~=Xvalue'  , expected: '*="value"' },
         { matcher: '~=valueX'  , expected: '*="value"' },
         { matcher: '~=XvalueX' , expected: '*="value"' },
         { matcher: '~=XXXXXXX' , expected: 'null' },
-        { matcher: '~=XXaluXX' , expected: '*="alu"' },
+        { matcher: '~=XXaluXX' , expected: 'null' },
         // Combinations of subcode
         { matcher: '|=value'   , expected: '*="value"' },
         { matcher: '|=Xvalue'  , expected: '*="value"' },
         { matcher: '|=valueX'  , expected: '*="value"' },
         { matcher: '|=XvalueX' , expected: '*="value"' },
         { matcher: '|=XXXXXXX' , expected: 'null' },
-        { matcher: '|=XXaluXX' , expected: '*="alu"' },
+        { matcher: '|=XXaluXX' , expected: 'null' },
       ];
 
       checkOperation(matcher, 'union')(dataset);

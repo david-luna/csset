@@ -26,11 +26,11 @@ export class CssAttributeMatcher {
     }
 
     // TODO: add min lenght for this?
-    let substring = this.longestSubstring(this.value, matcher.value);
+    // let substring = this.longestSubstring(this.value, matcher.value);
 
-    if ( substring.length ) {
-      return `*="${substring}"`;
-    }
+    // if ( substring.length ) {
+    //   return `*="${substring}"`;
+    // }
 
     return null;
   }
