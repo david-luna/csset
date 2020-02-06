@@ -18,10 +18,22 @@ export const checkOperation = (matcher: CssAttributeMatcher, op: MatcherOperatio
     dataset.forEach((data) => {
       const testMatcher = CssMatcherFactory.create(data.matcher);
       const symbol  = operationSymbols[op];
-      const result  = `${matcher} ${symbol} ${data.matcher} <=> ${matcher[op](testMatcher)}`;
-      const message = `${matcher} ${symbol} ${data.matcher} <=> ${data.expected}`;
 
-      expect(result).toEqual(message);
+      if ( op !== operationSymbols.supersetOf ) {
+        const result  = `${matcher} ${symbol} ${data.matcher} <=> ${matcher[op](testMatcher)}`;
+        const message = `${matcher} ${symbol} ${data.matcher} <=> ${data.expected}`;
+        expect(result).toEqual(message);
+      } else {
+        const directOperation  = `${matcher[op](testMatcher)}`;
+        const inverseOperation = `${testMatcher[op](matcher)}`;
+        const directResult     = `(direct)  ${matcher} ${symbol} ${data.matcher} <=> ${directOperation}`;
+        const inverseResult    = `(inverse) ${data.matcher} ${symbol} ${matcher} <=> ${inverseOperation}`;
+        const directMessage    = `(direct)  ${matcher} ${symbol} ${data.matcher} <=> ${data.expected}`;
+        const inverseMessage   = `(inverse) ${data.matcher} ${symbol} ${matcher} <=> ${data.expected}`;
+
+        expect(directResult).toEqual(directMessage);
+        expect(inverseResult).toEqual(inverseMessage);
+      }
     });
   }
 }
