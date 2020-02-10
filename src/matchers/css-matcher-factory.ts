@@ -22,14 +22,23 @@ const clazzez: { [symbol: string]: CssMatcherConstructor }  = {
   [CssMatcherSymbol.Subcode]   : CssSubcodeMatcher,
 }
 
+const VALUE_REGEXPS = {
+  valid : /^('|")[^'"]+\1$|^[^'"]+$/,
+  quotes: /^["']|["']$/g,
+};
+
 
 export class CssMatcherFactory {
-  static create (s: string = ''): CssAttributeMatcher {
+  static create (selector: string = ''): CssAttributeMatcher {
 
-    const parts  = s.split('=');
+    const parts  = selector.split('=');
     const symbol = parts.length > 1 ? parts[0] || '=' : '';
     const value  = parts.length > 1 ? parts[1] : '';
 
-    return new clazzez[symbol](value);
+    if ( !!value && !VALUE_REGEXPS.valid.test(value) ) {
+      throw new SyntaxError(`Invalid atrribute value in ${selector}`);
+    }
+
+    return new clazzez[symbol](value.replace(VALUE_REGEXPS.quotes, ''));
   }
 }
