@@ -29,7 +29,7 @@ export class CssPrefixMatcher extends CssAttributeMatcher {
   }
 
   intersection ( matcher: CssAttributeMatcher ): string | null {
-    
+
     if ( this.value === matcher.value ) {
       if (matcher.symbol === CssMatcherSymbol.Occurrence ) {
         return `^="${this.value} "`;

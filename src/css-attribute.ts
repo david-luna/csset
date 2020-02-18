@@ -13,7 +13,7 @@ export class CssAttribute {
 
   name    : string;
   matchers: Map<CssMatcherSymbol, CssAttributeMatcher[]>;
-  
+
   constructor ( selector: string ) {
 
     if ( !regexs.bounds.test(selector) ) {
@@ -43,6 +43,35 @@ export class CssAttribute {
     this.name     = name;
   }
 
+  intersection( attr: CssAttribute ): CssAttribute {
+    const cloned = new CssAttribute(`[${this.name}]`);
+    const thisMatchers = [...this.matchers.values()].reduce((p,c) => p.concat(c), []);
+    const attrMatchers = [...attr.matchers.values()].reduce((p,c) => p.concat(c), []);
+    
+    console.log(`thisMatchers`, thisMatchers);
+    console.log(`attrMatchers`, attrMatchers);
+    
+    attrMatchers.forEach(attrMatcher => {
+      const index = thisMatchers.findIndex(thisMatcher => thisMatcher.intersection(attrMatcher));
+
+      if ( index !== -1 ) {
+        const newMatcher = thisMatchers[index].intersection(attrMatcher) as string;
+
+        thisMatchers.splice(index, 1);
+        thisMatchers.push(CssMatcherFactory.create(newMatcher));
+      } else {
+        thisMatchers.push(attrMatcher);
+      }
+    });
+     cloned.matchers = new Map();
+     thisMatchers.forEach(m => {
+       const list = cloned.matchers.get(m.symbol) || [];
+       cloned.matchers.set(m.symbol, list.concat([m]));
+     });
+
+    return cloned;
+  }
+
   toString(): string {
     let selector = '';
 
@@ -53,5 +82,13 @@ export class CssAttribute {
     return selector;
   }
 
-  
+  private clone(): CssAttribute {
+    const cloned = new CssAttribute(`[${this.name}]`);
+
+    for(let entry of this.matchers.entries() ) {
+      cloned.matchers.set(entry[0], entry[1].slice())
+    }
+
+    return cloned;
+  }
 }

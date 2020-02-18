@@ -47,7 +47,7 @@ describe('constructor', () => {
     const matchers  = ['', '=', '|', '^', '$', '*', '~'] as CssMatcherSymbol[];
     const selectors = [
       '[attr]',
-      '[attr=value]', '[attr=\'value\']', '[attr="value"]',
+      '[attr=value]' , '[attr=\'value\']' , '[attr="value"]',
       '[attr^=value]', '[attr^=\'value\']', '[attr^="value"]',
       '[attr$=value]', '[attr$=\'value\']', '[attr$="value"]',
       '[attr|=value]', '[attr|=\'value\']', '[attr|="value"]',
@@ -57,7 +57,7 @@ describe('constructor', () => {
   
     selectors.forEach((sel) => {
       const attr = new CssAttribute(sel);
-      const mtch = Array.from (attr.matchers.keys())[0];
+      const mtch = Array.from(attr.matchers.keys())[0];
       expect(attr.name).toEqual('attr');
       expect(attr.matchers.size).toEqual(1);
       expect(matchers.indexOf(mtch)).not.toEqual(-1);
@@ -85,6 +85,27 @@ describe('serialisation', () => {
       const attr = new CssAttribute(sel);
       expect(`${attr}`).toEqual('[attr^="value"]');
     });
+  });
+});
+
+describe('composition with intersection operation', () => {
+  test('should keep matchers if they cannot intersect', () => {
+    const dataset = [
+      { selectors: ['[attr^=valueA]', '[attr$=valueB]'], expected: '[attr^="valueA"][attr$="valueB"]' },
+    ]
+    
+  
+    dataset.forEach((data) => {
+      const attrs  = data.selectors.map(sel => new CssAttribute(sel));
+      const result = attrs.reduce((prev: CssAttribute | null, attr: CssAttribute): CssAttribute => {
+        if ( prev === null ) {
+          return attr;
+        }
+        return prev.intersection(attr);
+      }, null);
+      expect(`${result}`).toEqual(data.expected);
+    });
+    
   });
 });
 
