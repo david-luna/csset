@@ -1,5 +1,6 @@
 import { CssAttributeMatcher } from "../src/css-attribute-matcher";
 import { CssMatcherFactory } from '../src/matchers/css-matcher-factory';
+import { CssAttribute } from "../src/css-attribute";
 
 type MatcherTestSet = {
   matcher: string,
@@ -36,4 +37,10 @@ export const checkOperation = (matcher: CssAttributeMatcher, op: MatcherOperatio
       }
     });
   }
+}
+
+export const attrFromArray = (attribs: string []): CssAttribute => {
+  return attribs.map(a => new CssAttribute(a)).reduce((result, attr) => {
+    return result ? result.intersection(attr) : attr;
+  }, null as unknown as CssAttribute)
 }
