@@ -116,11 +116,11 @@ describe('prefix matcher', () => {
         { matcher: ''       , expected: '^="value"' },
         // Combinations of equal
         { matcher: '=value'  ,  expected: '="value"' },
-        { matcher: '=Xvalue' ,  expected: 'null' },
+        { matcher: '=Xvalue' ,  expected: 'undefined' },
         { matcher: '=valueX' ,  expected: '="valueX"' },
-        { matcher: '=XvalueX',  expected: 'null' },
-        { matcher: '=XXXXXXX',  expected: 'null' },
-        { matcher: '=XXaluXX',  expected: 'null' },
+        { matcher: '=XvalueX',  expected: 'undefined' },
+        { matcher: '=XXXXXXX',  expected: 'undefined' },
+        { matcher: '=XXaluXX',  expected: 'undefined' },
         // Combinations of prefix
         { matcher: '^=value' ,  expected: '^="value"' },
         { matcher: '^=Xvalue',  expected: 'null' },

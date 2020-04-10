@@ -28,8 +28,7 @@ export class CssPrefixMatcher extends CssAttributeMatcher {
     return super.union(matcher);
   }
 
-  intersection ( matcher: CssAttributeMatcher ): string | null {
-
+  intersection ( matcher: CssAttributeMatcher ): string | null | void {
     if ( this.value === matcher.value ) {
       if (matcher.symbol === CssMatcherSymbol.Occurrence ) {
         return `^="${this.value} "`;

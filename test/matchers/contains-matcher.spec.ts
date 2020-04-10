@@ -119,8 +119,8 @@ describe('contains matcher', () => {
         { matcher: '=Xvalue'   , expected: '="Xvalue"' },
         { matcher: '=valueX'   , expected: '="valueX"' },
         { matcher: '=XvalueX'  , expected: '="XvalueX"' },
-        { matcher: '=XXXXXXX'  , expected: 'null' },
-        { matcher: '=XXaluXX'  , expected: 'null' },
+        { matcher: '=XXXXXXX'  , expected: 'undefined' },
+        { matcher: '=XXaluXX'  , expected: 'undefined' },
         // Combinations of prefix
         { matcher: '^=value'   , expected: '^="value"' },
         { matcher: '^=Xvalue'  , expected: '^="Xvalue"' },

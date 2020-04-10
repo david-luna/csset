@@ -21,17 +21,4 @@ export class CssContainsMatcher extends CssAttributeMatcher {
 
     return false;
   }
-
-  // union ( matcher: CssAttributeMatcher ): string | null {
-
-  //   if (matcher.symbol !== CssMatcherSymbol.Presence) {
-  //     const substring = this.longestSubstring(this.value, matcher.value);
-
-  //     if ( substring.length ) {
-  //       return `*="${substring}"`
-  //     }
-  //   }
-
-  //   return super.union(matcher);
-  // }
 }
