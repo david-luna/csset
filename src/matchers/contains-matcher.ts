@@ -14,7 +14,6 @@ export class CssContainsMatcher extends CssAttributeMatcher {
   readonly symbol: CssMatcherSymbol = CssMatcherSymbol.Contains;
 
   supersetOf ( matcher: CssAttributeMatcher ): boolean {
-
     if (supersetSymbols.indexOf(matcher.symbol) !== -1) {
       return matcher.value.indexOf(this.value) !== -1;
     }

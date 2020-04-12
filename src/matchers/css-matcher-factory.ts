@@ -30,7 +30,6 @@ const VALUE_REGEXPS = {
 
 export class CssMatcherFactory {
   static create (selector: string = ''): CssAttributeMatcher {
-
     const parts  = selector.split('=');
     const symbol = parts.length > 1 ? parts[0] || '=' : '';
     const value  = parts.length > 1 ? parts[1] : '';

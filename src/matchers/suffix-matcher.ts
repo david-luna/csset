@@ -10,7 +10,6 @@ export class CssSuffixMatcher extends CssAttributeMatcher {
   readonly symbol: CssMatcherSymbol = CssMatcherSymbol.Suffix;
 
   supersetOf ( matcher: CssAttributeMatcher ): boolean {
-
     if (supersetSymbols.indexOf(matcher.symbol) !== -1) {
       return matcher.value.endsWith(this.value);
     }
@@ -19,17 +18,18 @@ export class CssSuffixMatcher extends CssAttributeMatcher {
   }
 
   intersection ( matcher: CssAttributeMatcher ): string | null | void {
-    if (
-      (matcher.value.endsWith(this.value) || this.value.endsWith(matcher.value))
-      && matcher.symbol === CssMatcherSymbol.Suffix
-    ) {
-      return this.value.length > matcher.value.length ? `$="${this.value}"` : `$="${matcher.value}"`;
-    }
+    if ( matcher.symbol === CssMatcherSymbol.Suffix ) {
+      if ( matcher.value.endsWith(this.value) || this.value.endsWith(matcher.value) ) {
+        const longestValue = this.value.length > matcher.value.length ? this.value : matcher.value;
 
-    if ( matcher.symbol === CssMatcherSymbol.Suffix && this.value !== matcher.value ) {
-      return void 0;
+        return `$="${longestValue}"`
+      }
+      
+      if ( this.value !== matcher.value ) {
+        return void 0;
+      }
     }
-
+    
     return super.intersection(matcher);
   }
 }

@@ -10,7 +10,6 @@ export class CssSubcodeMatcher extends CssAttributeMatcher {
   readonly symbol: CssMatcherSymbol = CssMatcherSymbol.Subcode;
 
   supersetOf ( matcher: CssAttributeMatcher ): boolean {
-
     if ( supersetSymbols.indexOf(matcher.symbol) !== -1 ) {
       return matcher.value === this.value;
     }
