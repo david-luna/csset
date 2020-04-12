@@ -20,7 +20,7 @@ export const checkOperation = (matcher: CssAttributeMatcher, op: MatcherOperatio
       const testMatcher = CssMatcherFactory.create(data.matcher);
       const symbol  = operationSymbols[op];
 
-      if ( op !== operationSymbols.supersetOf ) {
+      if ( symbol === operationSymbols.supersetOf ) {
         const result  = `${matcher} ${symbol} ${data.matcher} <=> ${matcher[op](testMatcher)}`;
         const message = `${matcher} ${symbol} ${data.matcher} <=> ${data.expected}`;
         expect(result).toEqual(message);
