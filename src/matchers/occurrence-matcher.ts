@@ -19,17 +19,8 @@ export class CssOccurrenceMatcher extends CssAttributeMatcher {
   }
 
   intersection ( matcher: CssAttributeMatcher ): string | null | void {
-    
     if ( this.value === matcher.value ) {
-      if (matcher.symbol === CssMatcherSymbol.Prefix ) {
-        return `^="${this.value} "`;
-      }
-
-      if (matcher.symbol === CssMatcherSymbol.Suffix ) {
-        return `$=" ${this.value}"`;
-      }
-
-      if (matcher.symbol === CssMatcherSymbol.Subcode ) {
+      if ( matcher.symbol === CssMatcherSymbol.Equal ) {
         return `="${this.value}"`;
       }
     }

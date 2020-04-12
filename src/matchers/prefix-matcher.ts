@@ -30,19 +30,26 @@ export class CssPrefixMatcher extends CssAttributeMatcher {
 
   intersection ( matcher: CssAttributeMatcher ): string | null | void {
     if ( this.value === matcher.value ) {
-      if (matcher.symbol === CssMatcherSymbol.Occurrence ) {
-        return `^="${this.value} "`;
-      }
-
-      if (matcher.symbol === CssMatcherSymbol.Subcode ) {
-        return `^="${this.value}"`;
+      if (matcher.symbol === CssMatcherSymbol.Equal ) {
+        return `="${this.value}"`;
       }
     }
 
     if ( matcher.value.startsWith(this.value) ) {
-      if (matcher.symbol === CssMatcherSymbol.Subcode ) {
+      if ( matcher.symbol === CssMatcherSymbol.Prefix ) {
         return `^="${matcher.value}"`;
       }
+      if ( matcher.symbol === CssMatcherSymbol.Subcode ) {
+        return `|="${matcher.value}"`;
+      }
+    }
+
+    if ( this.value.startsWith(matcher.value) && matcher.symbol === CssMatcherSymbol.Prefix ) {
+      return `^="${this.value}"`;
+    }
+
+    if ( matcher.symbol === CssMatcherSymbol.Prefix && this.value !== matcher.value ) {
+      return void 0;
     }
 
     return super.intersection(matcher);

@@ -132,19 +132,19 @@ describe('suffix matcher', () => {
         // Combinations of suffix
         { matcher: '$=value'  , expected: '$="value"' },
         { matcher: '$=Xvalue' , expected: '$="Xvalue"' },
-        { matcher: '$=valueX' , expected: 'null' },
-        { matcher: '$=XvalueX', expected: 'null' },
-        { matcher: '$=XXXXXXX', expected: 'null' },
-        { matcher: '$=XXaluXX', expected: 'null' },
+        { matcher: '$=valueX' , expected: 'undefined' },
+        { matcher: '$=XvalueX', expected: 'undefined' },
+        { matcher: '$=XXXXXXX', expected: 'undefined' },
+        { matcher: '$=XXaluXX', expected: 'undefined' },
         // Combinations of contains
         { matcher: '*=value'  , expected: '$="value"' },
-        // { matcher: '*=Xvalue' , expected: '$="Xvalue"' }, // TODO: check
+        { matcher: '*=Xvalue' , expected: 'null' },
         { matcher: '*=valueX' , expected: 'null' },
         { matcher: '*=XvalueX', expected: 'null' },
         { matcher: '*=XXXXXXX', expected: 'null' },
         { matcher: '*=XXaluXX', expected: 'null' },
         // Combinations of occurrence
-        // { matcher: '~=value'  , expected: '$=" value"' }, // TODO: check
+        { matcher: '~=value'  , expected: 'null' },
         { matcher: '~=Xvalue' , expected: 'null' },
         { matcher: '~=valueX' , expected: 'null' },
         { matcher: '~=XvalueX', expected: 'null' },

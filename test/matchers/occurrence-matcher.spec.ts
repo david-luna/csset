@@ -2,7 +2,7 @@ import { CssOccurrenceMatcher } from '../../src/matchers/occurrence-matcher';
 import { checkOperation } from '../test-utils';
 
 
-describe('presence matcher', () => {
+describe('occurence matcher', () => {
   describe('supersetOf', () => {
     test('supersetOf should work with same value and other types', () => {
       const matcher = new CssOccurrenceMatcher('value');
@@ -122,14 +122,14 @@ describe('presence matcher', () => {
         { matcher: '=XXXXXXX',  expected: 'undefined' },
         { matcher: '=XXaluXX',  expected: 'undefined' },
         // Combinations of prefix
-        { matcher: '^=value' ,  expected: '^="value "' },
+        { matcher: '^=value' ,  expected: 'null' },
         { matcher: '^=Xvalue',  expected: 'null' },
         { matcher: '^=valueX',  expected: 'null' },
         { matcher: '^=XvalueX', expected: 'null' },
         { matcher: '^=XXXXXXX', expected: 'null' },
         { matcher: '^=XXaluXX', expected: 'null' },
         // Combinations of suffix
-        { matcher: '$=value' ,  expected: '$=" value"' },
+        { matcher: '$=value' ,  expected: 'null' },
         { matcher: '$=Xvalue',  expected: 'null' },
         { matcher: '$=valueX',  expected: 'null' },
         { matcher: '$=XvalueX', expected: 'null' },
@@ -150,7 +150,7 @@ describe('presence matcher', () => {
         { matcher: '~=XXXXXXX', expected: 'null' },
         { matcher: '~=XXaluXX', expected: 'null' },
         // Combinations of subcode
-        { matcher: '|=value' ,  expected: '="value"' },
+        { matcher: '|=value' ,  expected: 'null' },
         { matcher: '|=Xvalue',  expected: 'null' },
         { matcher: '|=valueX',  expected: 'null' },
         { matcher: '|=XvalueX', expected: 'null' },
