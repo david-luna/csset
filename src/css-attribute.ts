@@ -47,11 +47,14 @@ export class CssAttribute {
     const thisMatchers = [...this.matchers.values()].reduce((p,c) => p.concat(c), []);
     const attrMatchers = [...attr.matchers.values()].reduce((p,c) => p.concat(c), []);
 
-    // to be superset all attr matchers must be subset of one of mine's
-    for (let attrMatcher of attrMatchers) {
-      const index = thisMatchers.findIndex((thisMatcher) => thisMatcher.supersetOf(attrMatcher));
+    // To be a superset all matchers in this
+    // - must be a superset of at least one attrMatcher
+    // - must not have a void intersection with any attrMatcher
+    for (let matcher of thisMatchers) {
+      const supersetIndex = attrMatchers.findIndex((attrMatcher) => matcher.supersetOf(attrMatcher));
+      const voidIndex = attrMatchers.findIndex((attrMatcher) => matcher.intersection(attrMatcher) === void 0);
 
-      if ( index === -1 ) {
+      if ( supersetIndex === -1 || voidIndex !== -1 ) {
         return false;
       }
     }

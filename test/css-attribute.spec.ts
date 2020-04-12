@@ -124,7 +124,7 @@ describe('composition with intersection operation', () => {
   });
 });
 
-describe.skip('supersetOf', () => {
+describe('supersetOf', () => {
   test('should work with simple matchers', () => {
     const dataset = [
       { attr1: '[attr]'        , attr2: '[attr]'               , expected: true },
