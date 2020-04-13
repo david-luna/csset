@@ -66,31 +66,84 @@ export class CssAttribute {
     return attr.supersetOf(this);
   }
 
-  intersection( attr: CssAttribute ): CssAttribute {
-    const cloned = new CssAttribute(`[${this.name}]`);
+  union( attr: CssAttribute ): CssAttribute | null {
+    const union = this.supersetOf(attr) ? this :
+                  attr.supersetOf(this) ? attr : null;
+
+    return union === null ? null : new CssAttribute(`${union}`);
+  }
+
+  intersection( attr: CssAttribute ): CssAttribute | void {
+    if ( this.supersetOf(attr) ) {
+      return attr;
+    }
+
+    if ( attr.supersetOf(this) ) {
+      return this;
+    }
+
     const thisMatchers = [...this.matchers.values()].reduce((p,c) => p.concat(c), []);
     const attrMatchers = [...attr.matchers.values()].reduce((p,c) => p.concat(c), []);
+    const resultMatchers: CssAttributeMatcher[] = [];
 
-    attrMatchers.forEach(attrMatcher => {
-      const index = thisMatchers.findIndex(thisMatcher => thisMatcher.intersection(attrMatcher));
+    for ( let matcher of thisMatchers ) {
+      const voidIndex = attrMatchers.findIndex((attrMatcher) => matcher.intersection(attrMatcher) === void 0);
 
-      if ( index !== -1 ) {
-        const newMatcher = thisMatchers[index].intersection(attrMatcher) as string;
-
-        thisMatchers.splice(index, 1);
-        thisMatchers.push(CssMatcherFactory.create(newMatcher));
-      } else {
-        thisMatchers.push(attrMatcher);
+      if ( voidIndex !== -1 ) {
+        return void 0;
       }
-    });
-     cloned.matchers = new Map();
-     thisMatchers.forEach(m => {
+      
+      const intersectIndex = attrMatchers.findIndex((attrMatcher) => !!matcher.intersection(attrMatcher));
+
+      if ( intersectIndex !== -1 ) {
+        const matcherString = matcher.intersection(attrMatchers[intersectIndex]);
+
+        resultMatchers.push(CssMatcherFactory.create(`${matcherString}`));
+        attrMatchers.splice(intersectIndex, 1);
+      } else {
+        resultMatchers.push(matcher);
+      }
+    }
+
+    for ( let matcher of attrMatchers ) {
+      resultMatchers.push(matcher);
+    }
+
+    const cloned = new CssAttribute(`[${this.name}]`);
+    cloned.matchers = new Map();
+    resultMatchers.forEach(m => {
        const list = cloned.matchers.get(m.symbol) || [];
        cloned.matchers.set(m.symbol, list.concat([m]));
      });
 
     return cloned;
   }
+
+  // intersectionOld( attr: CssAttribute ): CssAttribute {
+  //   const cloned = new CssAttribute(`[${this.name}]`);
+  //   const thisMatchers = [...this.matchers.values()].reduce((p,c) => p.concat(c), []);
+  //   const attrMatchers = [...attr.matchers.values()].reduce((p,c) => p.concat(c), []);
+
+  //   attrMatchers.forEach(attrMatcher => {
+  //     const index = thisMatchers.findIndex(thisMatcher => thisMatcher.intersection(attrMatcher));
+
+  //     if ( index !== -1 ) {
+  //       const newMatcher = thisMatchers[index].intersection(attrMatcher) as string;
+
+  //       thisMatchers.splice(index, 1);
+  //       thisMatchers.push(CssMatcherFactory.create(newMatcher));
+  //     } else {
+  //       thisMatchers.push(attrMatcher);
+  //     }
+  //   });
+  //    cloned.matchers = new Map();
+  //    thisMatchers.forEach(m => {
+  //      const list = cloned.matchers.get(m.symbol) || [];
+  //      cloned.matchers.set(m.symbol, list.concat([m]));
+  //    });
+
+  //   return cloned;
+  // }
 
   toString(): string {
     let selector = '';

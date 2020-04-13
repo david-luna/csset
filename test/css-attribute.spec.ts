@@ -28,6 +28,12 @@ const operationSimbols = {
 //   });
 // };
 
+const intersectionReduce = (attrs: CssAttribute[]): CssAttribute | void => {
+  return attrs.reduce((prev: CssAttribute | void, attr: CssAttribute): CssAttribute | void => {
+    return prev ? prev.intersection(attr) : attr;
+  }, void 0);
+}
+
 
 describe('constructor', () => {
   test('should throw SyntaxError when the selector is wrong', () => {
@@ -89,8 +95,6 @@ describe('serialisation', () => {
   });
 });
 
-
-
 describe('composition with intersection operation', () => {
   test('should keep matchers if they cannot intersect', () => {
     const dataset = [
@@ -99,9 +103,7 @@ describe('composition with intersection operation', () => {
   
     dataset.forEach((data) => {
       const attrs  = data.selectors.map(sel => new CssAttribute(sel));
-      const result = attrs.reduce((prev: CssAttribute | null, attr: CssAttribute): CssAttribute => {
-        return prev ? prev.intersection(attr) : attr;
-      }, null);
+      const result = intersectionReduce(attrs);
       expect(`${result}`).toEqual(data.expected);
     });
   });
@@ -116,9 +118,7 @@ describe('composition with intersection operation', () => {
   
     dataset.forEach((data) => {
       const attrs  = data.selectors.map(sel => new CssAttribute(sel));
-      const result = attrs.reduce((prev: CssAttribute | null, attr: CssAttribute): CssAttribute => {
-        return prev ? prev.intersection(attr) : attr;
-      }, null);
+      const result = intersectionReduce(attrs);
       expect(`${result}`).toEqual(data.expected);
     });
   });
@@ -226,9 +226,7 @@ describe('supersetOf', () => {
   
     dataset.forEach((data) => {
       const attrs  = data.selectors.map(sel => new CssAttribute(sel));
-      const result = attrs.reduce((prev: CssAttribute | null, attr: CssAttribute): CssAttribute => {
-        return prev ? prev.intersection(attr) : attr;
-      }, null);
+      const result = intersectionReduce(attrs);
       expect(`${result}`).toEqual(data.expected);
     });
   });
