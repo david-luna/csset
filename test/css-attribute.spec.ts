@@ -165,20 +165,40 @@ describe('supersetOf', () => {
 
   test('should work with multiple matchers', () => {
     const dataset = [
-      { 
+      {
         attr1: ['[attr]', '[attr^=test]'],
         attr2: ['[attr]', '[attr=test]'],
         expected: true
       },
-      { 
+      {
         attr1: ['[attr$=test]', '[attr^=test]'],
         attr2: ['[attr=test]'],
         expected: true
       },
-      { 
+      {
         attr1: ['[attr^=test]', '[attr*=value]'],
         attr2: ['[attr=value]'],
         expected: false
+      },
+      {
+        attr1: ['[attr^=start]', '[attr$=end]'],
+        attr2: ['[attr^=startlong]', '[attr$=longend]'],
+        expected: true
+      },
+      {
+        attr1: ['[attr^=start]', '[attr$=end]'],
+        attr2: ['[attr^=startlong]', '[attr~=occurr]', '[attr$=longend]'],
+        expected: true
+      },
+      {
+        attr1: ['[attr^=start]', '[attr*=contain]', '[attr$=end]'],
+        attr2: ['[attr^=startlong]', '[attr$=longend]'],
+        expected: false
+      },
+      {
+        attr1: ['[attr*=contain]'],
+        attr2: ['[attr^=startcontaintext]', '[attr$=textcontainend]'],
+        expected: true
       },
     ];
 
@@ -212,6 +232,4 @@ describe('supersetOf', () => {
       expect(`${result}`).toEqual(data.expected);
     });
   });
-
-
 });
