@@ -39,8 +39,18 @@ export const checkOperation = (matcher: CssAttributeMatcher, op: MatcherOperatio
   }
 }
 
+
+export const intersectionReduce = (attrs: CssAttribute[]): CssAttribute | void => {
+  return attrs.reduce((prev: CssAttribute | void, attr: CssAttribute): CssAttribute | void => {
+    return prev ? prev.intersection(attr) : attr;
+  }, void 0);
+}
+
 export const attrFromArray = (attribs: string []): CssAttribute => {
-  return attribs.map(a => new CssAttribute(a)).reduce((result, attr) => {
-    return result ? result.intersection(attr) : attr;
-  }, null as unknown as CssAttribute)
+  const result = intersectionReduce(attribs.map(a => new CssAttribute(a)));
+
+  if (!result) {
+    throw Error(`attrFromArray should return a CssAttribute`)
+  }
+  return result;
 }
