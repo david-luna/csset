@@ -1,51 +1,41 @@
-import { CssMatcherSymbol } from './types';
 import { CssAttributeMatcher } from './css-attribute-matcher';
 import { CssMatcherFactory } from './matchers/css-matcher-factory';
 
 const regexs: { [type: string]: RegExp }  = {
-  bounds : /^\[[^\]]+\]$/,
-  name   : /^[^\t\n\f \/>"'=]+$/,
-  matcher: /[\^\$~\|\*]/,
-  value  : /^('|")[^'"]+\1$|^[^'"]+$/,
+  selector: /\[[^\]]+\]/,
+  name    : /^[^\t\n\f \/>"'=]+$/,
+  matcher : /[\^\$~\|\*]/,
+  value   : /^('|")[^'"]+\1$|^[^'"]+$/,
 }
 
 export class CssAttribute {
-
   name    : string;
-  matchers: Map<CssMatcherSymbol, CssAttributeMatcher[]>;
+  matchers: CssAttributeMatcher[] = [];
 
   constructor ( selector: string ) {
+    const regex = new RegExp(`^(${regexs.selector.source})+$`);
 
-    if ( !regexs.bounds.test(selector) ) {
-      throw new SyntaxError(`Missing atrribute bounds in ${selector}`);
+    if ( !regex.test(selector) ) {
+      throw new SyntaxError(`Selector ${selector} is not well formed`);
     }
 
-    const equalIndex = selector.indexOf('=');
-    const hasValue   = equalIndex !== -1;
-    const hasMatcher = hasValue && regexs.matcher.test(selector.charAt(equalIndex - 1));
-    const splitIndex = hasMatcher ? equalIndex - 1 : (hasValue ? equalIndex : -1);
-    let name, rest;
+    while ( selector ) {
+      const matched = selector.match(regexs.selector);
 
-    if ( splitIndex !== -1 ) {
-      name = selector.substring(1, splitIndex);
-      rest = selector.substring(splitIndex, selector.length - 1);
-    } else {
-      name = selector.slice(1, -1);
-      rest = '';
+      if ( matched ) {
+        const sel = matched[0];
+
+        this.parseMatcher(matched[0]);
+        selector = selector.replace(sel, '');
+      }
     }
-
-    if ( !regexs.name.test(name) ) {
-      throw new SyntaxError(`Invalid atrribute name in ${selector}`);
-    }
-
-    const matcher = CssMatcherFactory.create(rest);
-    this.matchers = new Map([[matcher.symbol, [matcher]]]);
-    this.name     = name;
   }
 
+  
+
   supersetOf ( attr: CssAttribute ): boolean {
-    const thisMatchers = [...this.matchers.values()].reduce((p,c) => p.concat(c), []);
-    const attrMatchers = [...attr.matchers.values()].reduce((p,c) => p.concat(c), []);
+    const thisMatchers = this.matchers;
+    const attrMatchers = attr.matchers;
 
     // To be a superset all matchers in this
     // - must be a superset of at least one attrMatcher
@@ -82,9 +72,9 @@ export class CssAttribute {
       return this;
     }
 
-    const thisMatchers = [...this.matchers.values()].reduce((p,c) => p.concat(c), []);
-    const attrMatchers = [...attr.matchers.values()].reduce((p,c) => p.concat(c), []);
-    const resultMatchers: CssAttributeMatcher[] = [];
+    const thisMatchers = this.matchers;
+    const attrMatchers = attr.matchers;
+    const intersectionMatchers: CssAttributeMatcher[] = [];
 
     for ( let matcher of thisMatchers ) {
       const voidIndex = attrMatchers.findIndex((attrMatcher) => matcher.intersection(attrMatcher) === void 0);
@@ -98,25 +88,21 @@ export class CssAttribute {
       if ( intersectIndex !== -1 ) {
         const matcherString = matcher.intersection(attrMatchers[intersectIndex]);
 
-        resultMatchers.push(CssMatcherFactory.create(`${matcherString}`));
+        intersectionMatchers.push(CssMatcherFactory.create(`${matcherString}`));
         attrMatchers.splice(intersectIndex, 1);
       } else {
-        resultMatchers.push(matcher);
+        intersectionMatchers.push(matcher);
       }
     }
 
     for ( let matcher of attrMatchers ) {
-      resultMatchers.push(matcher);
+      intersectionMatchers.push(matcher);
     }
 
-    const cloned = new CssAttribute(`[${this.name}]`);
-    cloned.matchers = new Map();
-    resultMatchers.forEach(m => {
-       const list = cloned.matchers.get(m.symbol) || [];
-       cloned.matchers.set(m.symbol, list.concat([m]));
-     });
+    const intersectionAttr = new CssAttribute(`[${this.name}]`);
+    intersectionAttr.matchers = intersectionMatchers;
 
-    return cloned;
+    return intersectionAttr;
   }
 
   // intersectionOld( attr: CssAttribute ): CssAttribute {
@@ -146,12 +132,29 @@ export class CssAttribute {
   // }
 
   toString(): string {
-    let selector = '';
+    return this.matchers.reduce((prev, matcher) => `${prev}[${this.name}${matcher}]`, '');
+  }
 
-    for ( let matchers of this.matchers.values() ) {
-      selector += matchers.reduce((prev, matcher) => `${prev}[${this.name}${matcher}]`, '');
+  private parseMatcher( selector: string ) {
+    const equalIndex = selector.indexOf('=');
+    const hasValue   = equalIndex !== -1;
+    const hasMatcher = hasValue && regexs.matcher.test(selector.charAt(equalIndex - 1));
+    const splitIndex = hasMatcher ? equalIndex - 1 : (hasValue ? equalIndex : -1);
+    let name, rest;
+
+    if ( splitIndex !== -1 ) {
+      name = selector.substring(1, splitIndex);
+      rest = selector.substring(splitIndex, selector.length - 1);
+    } else {
+      name = selector.slice(1, -1);
+      rest = '';
     }
 
-    return selector;
+    if ( !regexs.name.test(name) ) {
+      throw new SyntaxError(`Invalid atrribute name in ${selector}`);
+    }
+
+    this.name = name;
+    this.matchers.push(CssMatcherFactory.create(rest));
   }
 }
