@@ -47,12 +47,3 @@ export const intersectionReduce = (attrs: CssAttribute[]): CssAttribute | void =
     return prev ? prev.intersection(attr) : attr;
   }, void 0);
 }
-
-export const attrFromArray = (attribs: string []): CssAttribute => {
-  const result = intersectionReduce(attribs.map(a => new CssAttribute(a)));
-
-  if (!result) {
-    throw Error(`attrFromArray should return a CssAttribute`)
-  }
-  return result;
-}

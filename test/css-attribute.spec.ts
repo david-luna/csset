@@ -1,5 +1,5 @@
 import { CssAttribute } from "../src/css-attribute";
-import { attrFromArray, intersectionReduce, operationSymbols } from "./test-utils";
+import { intersectionReduce, operationSymbols } from "./test-utils";
 
 
 describe('constructor', () => {
@@ -10,6 +10,9 @@ describe('constructor', () => {
       '[attr=value"]',
       '[attr=\'value]',
       '[attr=value\']',
+      '[attr=value]x',
+      '[attr=value][attr$=value]x',
+      '[attr=value[attr$=value]',
     ];
   
     selectors.forEach((sel) => {
@@ -138,38 +141,38 @@ describe('supersetOf', () => {
   test('should work with multiple matchers', () => {
     const dataset = [
       {
-        attr1: ['[attr]', '[attr^=test]'],
-        attr2: ['[attr]', '[attr=test]'],
+        attr1: '[attr]', '[attr^=test]',
+        attr2: '[attr]', '[attr=test]',
         expected: true
       },
       {
-        attr1: ['[attr$=test]', '[attr^=test]'],
-        attr2: ['[attr=test]'],
+        attr1: '[attr$=test]', '[attr^=test]',
+        attr2: '[attr=test]',
         expected: true
       },
       {
-        attr1: ['[attr^=test]', '[attr*=value]'],
-        attr2: ['[attr=value]'],
+        attr1: '[attr^=test]', '[attr*=value]',
+        attr2: '[attr=value]',
         expected: false
       },
       {
-        attr1: ['[attr^=start]', '[attr$=end]'],
-        attr2: ['[attr^=startlong]', '[attr$=longend]'],
+        attr1: '[attr^=start]', '[attr$=end]',
+        attr2: '[attr^=startlong]', '[attr$=longend]',
         expected: true
       },
       {
-        attr1: ['[attr^=start]', '[attr$=end]'],
-        attr2: ['[attr^=startlong]', '[attr~=occurr]', '[attr$=longend]'],
+        attr1: '[attr^=start]', '[attr$=end]',
+        attr2: '[attr^=startlong]', '[attr~=occurr]', '[attr$=longend]',
         expected: true
       },
       {
-        attr1: ['[attr^=start]', '[attr*=contain]', '[attr$=end]'],
-        attr2: ['[attr^=startlong]', '[attr$=longend]'],
+        attr1: '[attr^=start]', '[attr*=contain]', '[attr$=end]',
+        attr2: '[attr^=startlong]', '[attr$=longend]',
         expected: false
       },
       {
-        attr1: ['[attr*=contain]'],
-        attr2: ['[attr^=startcontaintext]', '[attr$=textcontainend]'],
+        attr1: '[attr*=contain]',
+        attr2: '[attr^=startcontaintext]', '[attr$=textcontainend]',
         expected: true
       },
     ];
@@ -177,8 +180,8 @@ describe('supersetOf', () => {
     dataset.map(d => {
       return {
         ...d,
-        attr1: attrFromArray(d.attr1),
-        attr2: attrFromArray(d.attr2),
+        attr1: new CssAttribute(d.attr1),
+        attr2: new CssAttribute(d.attr2),
       };
     }).forEach(d => {
       const expected = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.expected}`;
@@ -240,33 +243,33 @@ describe('union', () => {
   test('should work with multiple matchers', () => {
     const dataset = [
       {
-        attr1: ['[attr]', '[attr^=test]'],
-        attr2: ['[attr]', '[attr=test]'],
+        attr1: '[attr][attr^=test]',
+        attr2: '[attr][attr=test]',
         expected: '[attr^="test"]'
       },
       {
-        attr1: ['[attr$=test]', '[attr^=test]'],
-        attr2: ['[attr=test]'],
+        attr1: '[attr$=test][attr^=test]',
+        attr2: '[attr=test]',
         expected: '[attr$="test"][attr^="test"]'
       },
       {
-        attr1: ['[attr^=test]', '[attr*=value]'],
-        attr2: ['[attr=value]'],
+        attr1: '[attr^=test][attr*=value]',
+        attr2: '[attr=value]',
         expected: 'null'
       },
       {
-        attr1: ['[attr^=start]', '[attr$=end]'],
-        attr2: ['[attr^=startlong]', '[attr$=longend]'],
+        attr1: '[attr^=start][attr$=end]',
+        attr2: '[attr^=startlong][attr$=longend]',
         expected: '[attr$="end"][attr^="start"]'
       },
       {
-        attr1: ['[attr^=start]', '[attr$=end]'],
-        attr2: ['[attr^=startlong]', '[attr~=occurr]', '[attr$=longend]'],
+        attr1: '[attr^=start][attr$=end]',
+        attr2: '[attr^=startlong][attr~=occurr][attr$=longend]',
         expected: '[attr$="end"][attr^="start"]'
       },
       {
-        attr1: ['[attr^=start]', '[attr*=contain]', '[attr$=end]'],
-        attr2: ['[attr^=startlong]', '[attr$=longend]'],
+        attr1: '[attr^=start][attr*=contain][attr$=end]',
+        attr2: '[attr^=startlong][attr$=longend]',
         expected: 'null'
       },
     ];
@@ -274,8 +277,8 @@ describe('union', () => {
     dataset.map(d => {
       return {
         ...d,
-        attr1: attrFromArray(d.attr1),
-        attr2: attrFromArray(d.attr2),
+        attr1: new CssAttribute(d.attr1),
+        attr2: new CssAttribute(d.attr2),
       };
     }).forEach(d => {
       const expected = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.expected}`;
@@ -283,5 +286,42 @@ describe('union', () => {
 
       expect(result).toEqual(expected);
     });
+  });
+});
+
+describe('intersection', () => {
+  test('should work with simple matchers', () => {
+    const dataset = [
+      { attr1: '[attr]'        , attr2: '[attr]'       , expected: '[attr]' },
+      { attr1: '[attr=value]'  , attr2: '[attr=valu€]' , expected: 'undefined' },
+      { attr1: '[attr=value]'  , attr2: '[attr=value]' , expected: '[attr="value"]' },
+      { attr1: '[attr=value]'  , attr2: '[attr$=value]', expected: '[attr="value"]' },
+    ];
+
+    dataset.map(d => {
+      return { ...d, attr1: new CssAttribute(d.attr1), attr2: new CssAttribute(d.attr2) };
+    }).forEach(d => {
+      const expected = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.expected}`;
+      const result = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.attr1.intersection(d.attr2)}`;
+
+      expect(result).toEqual(expected);
+    });
+  });
+
+  test('should concat matchers if there is no intersection between them', () => {
+    const cssAttr1 = new CssAttribute('[attr^=start][attr~=occur]');
+    const cssAttr2 = new CssAttribute('[attr*=contain][attr$=end]');
+    const expected = new CssAttribute('[attr^=start][attr~=occur][attr*=contain][attr$=end]');
+
+    expect(`${cssAttr1.intersection(cssAttr2)}`).toEqual(`${expected}`);
+  });
+
+  test('should merge matchers if there is intersection between them', () => {
+    // TODO: change values
+    const cssAttr1 = new CssAttribute('[attr^=start][attr*=contain][attr$=longend]');
+    const cssAttr2 = new CssAttribute('[attr^=startlong][attr*=xcontainx][attr$=end]');
+    const expected = new CssAttribute('[attr^=startlong][attr*=xcontainx][attr$=longend]');
+
+    expect(`${cssAttr1.intersection(cssAttr2)}`).toEqual(`${expected}`);
   });
 });

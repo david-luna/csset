@@ -2,7 +2,7 @@ import { CssAttributeMatcher } from './css-attribute-matcher';
 import { CssMatcherFactory } from './matchers/css-matcher-factory';
 
 const regexs: { [type: string]: RegExp }  = {
-  selector: /\[[^\]]+\]/,
+  selector: /\[[^\[\]]+\]/,
   name    : /^[^\t\n\f \/>"'=]+$/,
   matcher : /[\^\$~\|\*]/,
   value   : /^('|")[^'"]+\1$|^[^'"]+$/,
