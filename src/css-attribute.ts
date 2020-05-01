@@ -105,32 +105,6 @@ export class CssAttribute {
     return intersectionAttr;
   }
 
-  // intersectionOld( attr: CssAttribute ): CssAttribute {
-  //   const cloned = new CssAttribute(`[${this.name}]`);
-  //   const thisMatchers = [...this.matchers.values()].reduce((p,c) => p.concat(c), []);
-  //   const attrMatchers = [...attr.matchers.values()].reduce((p,c) => p.concat(c), []);
-
-  //   attrMatchers.forEach(attrMatcher => {
-  //     const index = thisMatchers.findIndex(thisMatcher => thisMatcher.intersection(attrMatcher));
-
-  //     if ( index !== -1 ) {
-  //       const newMatcher = thisMatchers[index].intersection(attrMatcher) as string;
-
-  //       thisMatchers.splice(index, 1);
-  //       thisMatchers.push(CssMatcherFactory.create(newMatcher));
-  //     } else {
-  //       thisMatchers.push(attrMatcher);
-  //     }
-  //   });
-  //    cloned.matchers = new Map();
-  //    thisMatchers.forEach(m => {
-  //      const list = cloned.matchers.get(m.symbol) || [];
-  //      cloned.matchers.set(m.symbol, list.concat([m]));
-  //    });
-
-  //   return cloned;
-  // }
-
   toString(): string {
     return this.matchers
       .map(matcher => `${matcher}`)
