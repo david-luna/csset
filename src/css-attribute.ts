@@ -132,7 +132,10 @@ export class CssAttribute {
   // }
 
   toString(): string {
-    return this.matchers.reduce((prev, matcher) => `${prev}[${this.name}${matcher}]`, '');
+    return this.matchers
+      .map(matcher => `${matcher}`)
+      .sort()
+      .reduce((prev, matcher) => `${prev}[${this.name}${matcher}]`, '');
   }
 
   private parseMatcher( selector: string ) {
@@ -140,7 +143,7 @@ export class CssAttribute {
     const hasValue   = equalIndex !== -1;
     const hasMatcher = hasValue && regexs.matcher.test(selector.charAt(equalIndex - 1));
     const splitIndex = hasMatcher ? equalIndex - 1 : (hasValue ? equalIndex : -1);
-    let name, rest;
+    let name, rest, matcher, intersection;
 
     if ( splitIndex !== -1 ) {
       name = selector.substring(1, splitIndex);
@@ -155,6 +158,19 @@ export class CssAttribute {
     }
 
     this.name = name;
-    this.matchers.push(CssMatcherFactory.create(rest));
+    matcher = CssMatcherFactory.create(rest);
+
+    for (let i = 0; i < this.matchers.length; i++) {
+      intersection = matcher.intersection(this.matchers[i]);
+      
+      if (intersection) {
+        this.matchers[i] = CssMatcherFactory.create(intersection);
+        break;
+      }
+    }
+
+    if (!intersection) {
+      this.matchers.push(matcher);
+    }
   }
 }

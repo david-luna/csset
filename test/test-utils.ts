@@ -40,6 +40,8 @@ export const checkMatcherOperation = (matcher: CssAttributeMatcher, op: MatcherO
 }
 
 
+
+
 export const intersectionReduce = (attrs: CssAttribute[]): CssAttribute | void => {
   return attrs.reduce((prev: CssAttribute | void, attr: CssAttribute): CssAttribute | void => {
     return prev ? prev.intersection(attr) : attr;

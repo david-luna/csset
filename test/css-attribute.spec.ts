@@ -1,9 +1,5 @@
 import { CssAttribute } from "../src/css-attribute";
-import { CssMatcherSymbol } from "../src/types";
 import { attrFromArray, intersectionReduce, operationSymbols } from "./test-utils";
-
-type ExpectDataset = { attr1: string, attr2: string, expected: string | boolean };
-type AttrOperation = 'includes' | 'union' | 'intersection';
 
 
 describe('constructor', () => {
@@ -22,7 +18,6 @@ describe('constructor', () => {
   });
 
   test('should create the instance when the selector is right', () => {
-    const matchers  = ['', '=', '|', '^', '$', '*', '~'] as CssMatcherSymbol[];
     const selectors = [
       '[attr]',
       '[attr=value]' , '[attr=\'value\']' , '[attr="value"]',
@@ -41,8 +36,15 @@ describe('constructor', () => {
 
   });
 
-});
+  test('should work with multiple matchers', () => {
+    const selectors = '[attr][attr=value][attr^=start][attr$=end]';
+  
+    const attr = new CssAttribute(selectors);
+    expect(attr.name).toEqual('attr');
+    expect(attr.matchers.length).toEqual(3);
+  });
 
+});
 
 describe('serialisation', () => {
   test('should return the same string in all cases', () => {
@@ -62,12 +64,19 @@ describe('serialisation', () => {
       expect(`${attr}`).toEqual('[attr^="value"]');
     });
   });
+
+  test('should return the same string even if selector has different order', () => {
+    const cssAttrStraight = new CssAttribute('[attr][attr^=start][attr$=end][attr*=contain]');
+    const cssAttrReversed = new CssAttribute('[attr*=contain][attr$=end][attr^=start][attr]');
+  
+    expect(`${cssAttrStraight}`).toEqual(`${cssAttrReversed}`);
+  });
 });
 
 describe('composition with intersection operation', () => {
   test('should keep matchers if they cannot intersect', () => {
     const dataset = [
-      { selectors: ['[attr^=valueA]', '[attr$=valueB]'], expected: '[attr^="valueA"][attr$="valueB"]' },
+      { selectors: ['[attr^=valueA]', '[attr$=valueB]'], expected: '[attr$="valueB"][attr^="valueA"]' },
     ];
   
     dataset.forEach((data) => {
@@ -248,12 +257,12 @@ describe('union', () => {
       {
         attr1: ['[attr^=start]', '[attr$=end]'],
         attr2: ['[attr^=startlong]', '[attr$=longend]'],
-        expected: '[attr^="start"][attr$="end"]'
+        expected: '[attr$="end"][attr^="start"]'
       },
       {
         attr1: ['[attr^=start]', '[attr$=end]'],
         attr2: ['[attr^=startlong]', '[attr~=occurr]', '[attr$=longend]'],
-        expected: '[attr^="start"][attr$="end"]'
+        expected: '[attr$="end"][attr^="start"]'
       },
       {
         attr1: ['[attr^=start]', '[attr*=contain]', '[attr$=end]'],
