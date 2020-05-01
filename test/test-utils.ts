@@ -14,7 +14,7 @@ export const operationSymbols: any = {
   intersection: "\u2229",
 };
 
-export const checkOperation = (matcher: CssAttributeMatcher, op: MatcherOperations): (...a: any[]) => void => {
+export const checkMatcherOperation = (matcher: CssAttributeMatcher, op: MatcherOperations): (...a: any[]) => void => {
   return (dataset: MatcherTestSet[]) => {
     dataset.forEach((data) => {
       const testMatcher = CssMatcherFactory.create(data.matcher);

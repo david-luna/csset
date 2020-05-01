@@ -1,5 +1,5 @@
 import { CssPresenceMatcher } from "../../src/matchers/presence-matcher";
-import { checkOperation } from '../test-utils';
+import { checkMatcherOperation } from '../test-utils';
 
 
 describe('presence matcher', () => {
@@ -51,7 +51,7 @@ describe('presence matcher', () => {
         { matcher: '=XXaluXX', expected: true },
       ];
 
-      checkOperation(matcher, 'supersetOf')(dataset);
+      checkMatcherOperation(matcher, 'supersetOf')(dataset);
     });
   });
 
@@ -104,7 +104,7 @@ describe('presence matcher', () => {
         { matcher: '|=XXaluXX', expected: '' },
       ];
 
-      checkOperation(matcher, 'union')(dataset);
+      checkMatcherOperation(matcher, 'union')(dataset);
     });
   });
 
@@ -157,7 +157,7 @@ describe('presence matcher', () => {
         { matcher: '|=XXaluXX', expected: '|="XXaluXX"' },
       ];
 
-      checkOperation(matcher, 'intersection')(dataset);
+      checkMatcherOperation(matcher, 'intersection')(dataset);
     });
   });
 });

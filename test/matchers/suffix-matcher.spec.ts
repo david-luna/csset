@@ -1,5 +1,5 @@
 import { CssSuffixMatcher } from "../../src/matchers/suffix-matcher";
-import { checkOperation } from '../test-utils';
+import { checkMatcherOperation } from '../test-utils';
 
 
 describe('suffix matcher', () => {
@@ -53,7 +53,7 @@ describe('suffix matcher', () => {
         { matcher: '|=XXaluXX', expected: false },
       ];
 
-      checkOperation(matcher, 'supersetOf')(dataset);
+      checkMatcherOperation(matcher, 'supersetOf')(dataset);
     });
   });
 
@@ -106,7 +106,7 @@ describe('suffix matcher', () => {
         { matcher: '|=XXaluXX', expected: 'null' },
       ];
 
-      checkOperation(matcher, 'union')(dataset);
+      checkMatcherOperation(matcher, 'union')(dataset);
     });
   });
 
@@ -159,7 +159,7 @@ describe('suffix matcher', () => {
         { matcher: '|=XXaluXX', expected: 'null' },
       ];
 
-      checkOperation(matcher, 'intersection')(dataset);
+      checkMatcherOperation(matcher, 'intersection')(dataset);
     });
   });
 });

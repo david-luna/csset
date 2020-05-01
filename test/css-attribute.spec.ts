@@ -1,15 +1,10 @@
 import { CssAttribute } from "../src/css-attribute";
 import { CssMatcherSymbol } from "../src/types";
-import { attrFromArray, intersectionReduce } from "./test-utils";
+import { attrFromArray, intersectionReduce, operationSymbols } from "./test-utils";
 
 type ExpectDataset = { attr1: string, attr2: string, expected: string | boolean };
 type AttrOperation = 'includes' | 'union' | 'intersection';
 
-const operationSimbols = {
-  supersetOf  : "\u2283",
-  union       : "\u222A",
-  intersection: "\u2229",
-};
 
 describe('constructor', () => {
   test('should throw SyntaxError when the selector is wrong', () => {
@@ -124,8 +119,8 @@ describe('supersetOf', () => {
     dataset.map(d => {
       return { ...d, attr1: new CssAttribute(d.attr1), attr2: new CssAttribute(d.attr2) };
     }).forEach(d => {
-      const expected = `${d.attr1} ${operationSimbols.supersetOf} ${d.attr2} <=> ${d.expected}`;
-      const result = `${d.attr1} ${operationSimbols.supersetOf} ${d.attr2} <=> ${d.attr1.supersetOf(d.attr2)}`;
+      const expected = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.expected}`;
+      const result = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.attr1.supersetOf(d.attr2)}`;
 
       expect(result).toEqual(expected);
     });
@@ -177,8 +172,8 @@ describe('supersetOf', () => {
         attr2: attrFromArray(d.attr2),
       };
     }).forEach(d => {
-      const expected = `${d.attr1} ${operationSimbols.supersetOf} ${d.attr2} <=> ${d.expected}`;
-      const result = `${d.attr1} ${operationSimbols.supersetOf} ${d.attr2} <=> ${d.attr1.supersetOf(d.attr2)}`;
+      const expected = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.expected}`;
+      const result = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.attr1.supersetOf(d.attr2)}`;
 
       expect(result).toEqual(expected);
     });
@@ -226,8 +221,8 @@ describe('union', () => {
     dataset.map(d => {
       return { ...d, attr1: new CssAttribute(d.attr1), attr2: new CssAttribute(d.attr2) };
     }).forEach(d => {
-      const expected = `${d.attr1} ${operationSimbols.union} ${d.attr2} <=> ${d.expected}`;
-      const result = `${d.attr1} ${operationSimbols.union} ${d.attr2} <=> ${d.attr1.union(d.attr2)}`;
+      const expected = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.expected}`;
+      const result = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.attr1.union(d.attr2)}`;
 
       expect(result).toEqual(expected);
     });
@@ -263,13 +258,8 @@ describe('union', () => {
       {
         attr1: ['[attr^=start]', '[attr*=contain]', '[attr$=end]'],
         attr2: ['[attr^=startlong]', '[attr$=longend]'],
-        expected: '[attr^="start"][attr$="end"]'
+        expected: 'null'
       },
-      // {
-      //   attr1: ['[attr*=contain]'],
-      //   attr2: ['[attr^=startcontaintext]', '[attr$=textcontainend]'],
-      //   expected: true
-      // },
     ];
 
     dataset.map(d => {
@@ -279,8 +269,8 @@ describe('union', () => {
         attr2: attrFromArray(d.attr2),
       };
     }).forEach(d => {
-      const expected = `${d.attr1} ${operationSimbols.union} ${d.attr2} <=> ${d.expected}`;
-      const result = `${d.attr1} ${operationSimbols.union} ${d.attr2} <=> ${d.attr1.union(d.attr2)}`;
+      const expected = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.expected}`;
+      const result = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.attr1.union(d.attr2)}`;
 
       expect(result).toEqual(expected);
     });
