@@ -1,5 +1,5 @@
 import { CssRule } from '../src/css-rule';
-import { CssAttributeMatcher } from '../src/types';
+import { CssMatcherSymbol } from '../src/types';
 
 describe.skip('constructor', () => {
   test('should throw SyntaxError when the selector is wrong', () => {
@@ -44,17 +44,17 @@ describe.skip('constructor', () => {
     expect(attribs.has('attr2^')).toBeTruthy();
     expect(attr1).toEqual({
       name   : 'attr1',
-      matcher: CssAttributeMatcher.Contains,
+      matcher: CssMatcherSymbol.Contains,
       value  : 'value1'
     });
     expect(attr21).toEqual({
       name   : 'attr2',
-      matcher: CssAttributeMatcher.Suffix,
+      matcher: CssMatcherSymbol.Suffix,
       value  : 'value2suff'
     });
     expect(attr22).toEqual({
       name   : 'attr2',
-      matcher: CssAttributeMatcher.Prefix,
+      matcher: CssMatcherSymbol.Prefix,
       value  : 'value2pref'
     });
   })

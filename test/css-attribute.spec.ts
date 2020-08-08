@@ -1,100 +1,99 @@
 import { CssAttribute } from "../src/css-attribute";
-import { CssAttributeMatcher } from "../src/types";
+import { intersectionReduce, operationSymbols } from "./test-utils";
 
-type ExpectDataset = { attr1: string, attr2: string, expected: string | boolean };
-type AttrOperation = 'includes' | 'union' | 'intersection';
+const selectorToArray = (s: string): string[] => {
+  const matchRx  = /[\*\^\$\|~]=/;
+  const selector = s.replace(/^\[|\]$/g, '');
+  const matcher  = matchRx.exec(selector);
+  const params: string[] = [];
 
-const operationSimbols = {
-  includes    : "\u2283",
-  union       : "\u222A",
-  intersection: "\u2229",
-};
+  if (matcher) {
+    const matchStr = matcher[0];
+    const index    = selector.indexOf(matchStr);
 
-const checkResults = (dataset: ExpectDataset[], operation: AttrOperation): void => {
-  dataset.forEach((data) => {
-    const simbol  = operationSimbols[operation]
-    const attr1   = new CssAttribute(data.attr1);
-    const attr2   = new CssAttribute(data.attr2);
-    const result1 = attr1[operation](attr2)
-    const result2 = attr2[operation](attr1)
-    const result  = `${attr1} ${simbol} ${attr2} = ${result1}`;
-    const message = `${attr1} ${simbol} ${attr2} = ${data.expected}`;
-    
-    expect(`${result}`).toEqual(message);
-    if (operation !== 'includes') {
-      expect(`${result1}`).toEqual(`${result2}`);
-    }
-  });
-};
+    params.push(selector.slice(0,index - 1));
+    params.push(selector.slice(index + matchStr.length));
+  } else {
+    params.push(selector);
+  }
 
-
-describe('constructor', () => {
-  test('should throw SyntaxError when the selector is wrong', () => {
-    const selectors = [
-      '[attr$value]',
-      '[attr/value]',
-      '[attr="value]',
-      '[attr=value"]',
-      '[attr=\'value]',
-      '[attr=value\']',
-    ];
-  
-    selectors.forEach((sel) => {
-      expect(() => new CssAttribute(sel)).toThrow(SyntaxError);
-    });
-  });
-
-  test('should create the instance when the selector is right', () => {
-    const matchers  = ['', '=', '|', '^', '$', '*', '~'] as CssAttributeMatcher[];
-    const selectors = [
-      '[attr=value]', '[attr=\'value\']', '[attr="value"]',
-      '[attr^=value]', '[attr^=\'value\']', '[attr^="value"]',
-      '[attr$=value]', '[attr$=\'value\']', '[attr$="value"]',
-      '[attr|=value]', '[attr|=\'value\']', '[attr|="value"]',
-      '[attr*=value]', '[attr*=\'value\']', '[attr*="value"]',
-      '[attr~=value]', '[attr~=\'value\']', '[attr~="value"]',
-    ];
-  
-    selectors.forEach((sel) => {
-      const attr = new CssAttribute(sel);
-      expect(attr.name).toEqual('attr');
-      expect(attr.value).toEqual('value');
-      expect(matchers.indexOf(attr.matcher)).not.toEqual(-1);
-    });
-
-    expect(new CssAttribute('[attr]')).toEqual({ selector: '[attr]', name: 'attr', matcher: '', value: '' });
-  });
-
-});
-
+  return params;
+}
 
 describe('serialisation', () => {
   test('should return the same string in all cases', () => {
-    const selectorsEqual = [
-      '[attr=value]', '[attr=\'value\']', '[attr="value"]',
+    const dataSet = [
+      {
+        params  : ['attr', '=', 'value'],
+        expected: '[attr="value"]',
+      },
+      {
+        params  : ['attr', '^=', 'value'],
+        expected: '[attr^="value"]',
+      },
     ];
-    const selectorsPrefix = [
-      '[attr^=value]', '[attr^=\'value\']', '[attr^="value"]',
+    
+    dataSet.forEach((data) => {
+      const attr = new CssAttribute(data.params);
+      expect(`${attr}`).toEqual(data.expected);
+    });
+  });
+
+  // TODO: combine with intersection
+  // test('should return the same string even if selector has different order', () => {
+  //   const cssAttrStraight = new CssAttribute('[attr][attr^=start][attr$=end][attr*=contain]');
+  //   const cssAttrReversed = new CssAttribute('[attr*=contain][attr$=end][attr^=start][attr]');
+  
+  //   expect(`${cssAttrStraight}`).toEqual(`${cssAttrReversed}`);
+  // });
+});
+
+describe('composition with intersection operation', () => {
+  test('should keep matchers if they cannot intersect', () => {
+    const dataset = [
+      {
+        selectors: [
+          ['attr','^=', 'valueA'], ['attr','$=', 'valueB'],
+        ],
+        expected: '[attr$="valueB"][attr^="valueA"]' },
     ];
   
-    selectorsEqual.forEach((sel) => {
-      const attr = new CssAttribute(sel);
-      expect(`${attr}`).toEqual('[attr="value"]');
+    dataset.forEach((data) => {
+      const attrs  = data.selectors.map(sel => new CssAttribute(sel));
+      const result = intersectionReduce(attrs);
+      expect(`${result}`).toEqual(data.expected);
     });
-    selectorsPrefix.forEach((sel) => {
-      const attr = new CssAttribute(sel);
-      expect(`${attr}`).toEqual('[attr^="value"]');
+  });
+
+  test('should merge matchers if they can intersect', () => {
+    const dataset = [
+      {
+        selectors: [['attr','^=', 'value'], ['attr','^=', 'valueA']],
+        expected: '[attr^="valueA"]'
+      },
+      {
+        selectors: [['attr','*=', 'value'], ['attr','^=', 'valueA']],
+        expected: '[attr^="valueA"]'
+      },
+      {
+        selectors: [['attr'], ['attr','$=', 'valueA']],
+        expected: '[attr$="valueA"]'
+      },
+    ];
+    
+  
+    dataset.forEach((data) => {
+      const attrs  = data.selectors.map(sel => new CssAttribute(sel));
+      const result = intersectionReduce(attrs);
+      expect(`${result}`).toEqual(data.expected);
     });
   });
 });
 
-describe('includes', () => {
-  const checkIncludesResults = (dataset: ExpectDataset[]) => checkResults(dataset, 'includes');
-
-  test('should work with the same type', () => {
+describe.skip('supersetOf', () => {
+  test('should work with simple matchers', () => {
     const dataset = [
       { attr1: '[attr]'        , attr2: '[attr]'               , expected: true },
-      { attr1: '[att]'         , attr2: '[attr]'               , expected: false },
       { attr1: '[attr=value]'  , attr2: '[attr=value]'         , expected: true },
       { attr1: '[attr=value]'  , attr2: '[attr=valu€]'         , expected: false },
       { attr1: '[attr^=value]' , attr2: '[attr^=value]'        , expected: true },
@@ -103,12 +102,6 @@ describe('includes', () => {
       { attr1: '[attr$=value]' , attr2: '[attr$=value]'        , expected: true },
       { attr1: '[attr$=value]' , attr2: '[attr$=longvalue]'    , expected: true },
       { attr1: '[attr$=value]' , attr2: '[attr$=valuewrong]'   , expected: false },
-      { attr1: '[attr$=value]' , attr2: '[attr$=value]'        , expected: true },
-      { attr1: '[attr$=value]' , attr2: '[attr$=longvalue]'    , expected: true },
-      { attr1: '[attr$=value]' , attr2: '[attr$=valuewrong]'   , expected: false },
-      { attr1: '[attr*=value]' , attr2: '[attr*=value]'        , expected: true },
-      { attr1: '[attr*=value]' , attr2: '[attr*=longvaluelong]', expected: true },
-      { attr1: '[attr*=value]' , attr2: '[attr*=valu€]'        , expected: false },
       { attr1: '[attr*=value]' , attr2: '[attr*=value]'        , expected: true },
       { attr1: '[attr*=value]' , attr2: '[attr*=longvaluelong]', expected: true },
       { attr1: '[attr*=value]' , attr2: '[attr*=valu€]'        , expected: false },
@@ -120,381 +113,209 @@ describe('includes', () => {
       { attr1: '[attr~=value]' , attr2: '[attr~=wrongvalue]'   , expected: false },
     ];
 
-    checkIncludesResults(dataset);
-  });
-
-  test('presence type should work with other types', () => {
-    const dataset = [
-      { attr1: '[attr]', attr2: '[attr]'       , expected: true },
-      { attr1: '[attr]', attr2: '[attr=value]' , expected: true },
-      { attr1: '[attr]', attr2: '[attr^=value]', expected: true },
-      { attr1: '[attr]', attr2: '[attr$=value]', expected: true },
-      { attr1: '[attr]', attr2: '[attr*=value]', expected: true },
-      { attr1: '[attr]', attr2: '[attr~=value]', expected: true },
-      { attr1: '[attr]', attr2: '[attr|=value]', expected: true },
-    ];
-
-    checkIncludesResults(dataset);
-  });
-
-  test('equals type should work with other types', () => {
-    const dataset = [
-      { attr1: '[attr=value]', attr2: '[attr]'       , expected: false },
-      { attr1: '[attr=value]', attr2: '[attr=value]' , expected: true },
-      { attr1: '[attr=value]', attr2: '[attr^=value]', expected: false },
-      { attr1: '[attr=value]', attr2: '[attr$=value]', expected: false },
-      { attr1: '[attr=value]', attr2: '[attr*=value]', expected: false },
-      { attr1: '[attr=value]', attr2: '[attr~=value]', expected: false },
-      { attr1: '[attr=value]', attr2: '[attr|=value]', expected: false },
-    ];
-
-    checkIncludesResults(dataset);
-  });
-
-  test('prefix type should work with other types', () => {
-    const dataset = [
-      { attr1: '[attr^=value]', attr2: '[attr]'       , expected: false },
-      { attr1: '[attr^=value]', attr2: '[attr=value]' , expected: true },
-      { attr1: '[attr^=value]', attr2: '[attr^=value]', expected: true },
-      { attr1: '[attr^=value]', attr2: '[attr$=value]', expected: false },
-      { attr1: '[attr^=value]', attr2: '[attr*=value]', expected: false },
-      { attr1: '[attr^=value]', attr2: '[attr~=value]', expected: false },
-      { attr1: '[attr^=value]', attr2: '[attr|=value]', expected: true },
+    dataset.map(d => {
+      const params1 = selectorToArray(d.attr1);
+      const params2 = selectorToArray(d.attr2);
       
-    ];
+      return { ...d, attr1: new CssAttribute(params1), attr2: new CssAttribute(params2) };
+    }).forEach(d => {
+      const expected = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.expected}`;
+      const result = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.attr1.supersetOf(d.attr2)}`;
 
-    checkIncludesResults(dataset);
+      expect(result).toEqual(expected);
+    });
   });
 
-  test('suffix type should work with other types', () => {
+  test('should work with multiple matchers', () => {
     const dataset = [
-      { attr1: '[attr$=value]', attr2: '[attr]'       , expected: false },
-      { attr1: '[attr$=value]', attr2: '[attr=value]' , expected: true },
-      { attr1: '[attr$=value]', attr2: '[attr^=value]', expected: false },
-      { attr1: '[attr$=value]', attr2: '[attr$=value]', expected: true },
-      { attr1: '[attr$=value]', attr2: '[attr*=value]', expected: false },
-      { attr1: '[attr$=value]', attr2: '[attr~=value]', expected: false },
-      { attr1: '[attr$=value]', attr2: '[attr|=value]', expected: false },
-      
+      {
+        attr1: '[attr][attr^=test]',
+        attr2: '[attr][attr=test]',
+        expected: true
+      },
+      {
+        attr1: '[attr$=test][attr^=test]',
+        attr2: '[attr=test]',
+        expected: true
+      },
+      {
+        attr1: '[attr^=test][attr*=value]',
+        attr2: '[attr=value]',
+        expected: false
+      },
+      {
+        attr1: '[attr^=start][attr$=end]',
+        attr2: '[attr^=startlong][attr$=longend]',
+        expected: true
+      },
+      {
+        attr1: '[attr^=start][attr$=end]',
+        attr2: '[attr^=startlong][attr~=occurr][attr$=longend]',
+        expected: true
+      },
+      {
+        attr1: '[attr^=start][attr*=contain][attr$=end]',
+        attr2: '[attr^=startlong][attr$=longend]',
+        expected: false
+      },
+      {
+        attr1: '[attr*=contain]',
+        attr2: '[attr^=startcontaintext][attr$=textcontainend]',
+        expected: true
+      },
     ];
 
-    checkIncludesResults(dataset);
+    dataset.map(d => {
+      return {
+        ...d,
+        attr1: new CssAttribute(selectorToArray(d.attr1)),
+        attr2: new CssAttribute(selectorToArray(d.attr2)),
+      };
+    }).forEach(d => {
+      const expected = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.expected}`;
+      const result = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.attr1.supersetOf(d.attr2)}`;
+
+      expect(result).toEqual(expected);
+    });
   });
 
-  test('contains type should work with other types', () => {
+  test('should merge matchers if they can intersect', () => {
     const dataset = [
-      { attr1: '[attr*=value]', attr2: '[attr]'       , expected: false },
-      { attr1: '[attr*=value]', attr2: '[attr=value]' , expected: true },
-      { attr1: '[attr*=value]', attr2: '[attr^=value]', expected: true },
-      { attr1: '[attr*=value]', attr2: '[attr$=value]', expected: true },
-      { attr1: '[attr*=value]', attr2: '[attr*=value]', expected: true },
-      { attr1: '[attr*=value]', attr2: '[attr~=value]', expected: true },
-      { attr1: '[attr*=value]', attr2: '[attr|=value]', expected: true },
+      { selectors: ['[attr^=value]', '[attr^=valueA]'], expected: '[attr^="valueA"]' },
+      { selectors: ['[attr*=value]', '[attr^=valueA]'], expected: '[attr^="valueA"]' },
+      { selectors: ['[attr]'       , '[attr$=valueA]'], expected: '[attr$="valueA"]' },
     ];
-
-    checkIncludesResults(dataset);
-  });
-
-  test('ocurrence type should work with other types', () => {
-    const dataset = [
-      { attr1: '[attr~=value]', attr2: '[attr]'       , expected: false },
-      { attr1: '[attr~=value]', attr2: '[attr=value]' , expected: true },
-      { attr1: '[attr~=value]', attr2: '[attr^=value]', expected: false },
-      { attr1: '[attr~=value]', attr2: '[attr$=value]', expected: false },
-      { attr1: '[attr~=value]', attr2: '[attr*=value]', expected: false },
-      { attr1: '[attr~=value]', attr2: '[attr~=value]', expected: true },
-      { attr1: '[attr~=value]', attr2: '[attr|=value]', expected: false },
-    ];
-
-    checkIncludesResults(dataset);
-  });
-
-  test('subcode type should work with other types', () => {
-    const dataset = [
-      { attr1: '[attr|=value]', attr2: '[attr]'       , expected: false },
-      { attr1: '[attr|=value]', attr2: '[attr=value]' , expected: true },
-      { attr1: '[attr|=value]', attr2: '[attr^=value]', expected: false },
-      { attr1: '[attr|=value]', attr2: '[attr$=value]', expected: false },
-      { attr1: '[attr|=value]', attr2: '[attr*=value]', expected: false },
-      { attr1: '[attr|=value]', attr2: '[attr~=value]', expected: false },
-      { attr1: '[attr|=value]', attr2: '[attr|=value]', expected: true },
-    ];
-
-    checkIncludesResults(dataset);
+    
+  
+    dataset.forEach((data) => {
+      const attrs  = data.selectors.map(sel => new CssAttribute(selectorToArray(sel)));
+      const result = intersectionReduce(attrs);
+      expect(`${result}`).toEqual(data.expected);
+    });
   });
 });
 
-describe('union', () => {
-  const checkUnionResults = (dataset: ExpectDataset[]) => checkResults(dataset, 'union');
-
-  test('should return the union regardless of the order', () => {
+describe.skip('union', () => {
+  test('should work with simple matchers', () => {
     const dataset = [
-      { attr1: '[attr]', attr2: '[attr=value]'  , expected: '[attr]' },
-      { attr1: '[attr]', attr2: '[attr^=value]' , expected: '[attr]' },
-      { attr1: '[attr]', attr2: '[attr$=value]' , expected: '[attr]' },
-      { attr1: '[attr]', attr2: '[attr*=value]' , expected: '[attr]' },
-      { attr1: '[attr]', attr2: '[attr|=value]' , expected: '[attr]' },
-      { attr1: '[attr]', attr2: '[attr~=value]' , expected: '[attr]' },
-      { attr1: '[attr=value]', attr2: '[attr=value]'   , expected: '[attr="value"]' },
-      { attr1: '[attr=value]', attr2: '[attr^=value]'  , expected: '[attr^="value"]' },
-      { attr1: '[attr=value]', attr2: '[attr$=value]'  , expected: '[attr$="value"]' },
-      { attr1: '[attr=value]', attr2: '[attr*=value]'  , expected: '[attr*="value"]' },
-      { attr1: '[attr=value]', attr2: '[attr|=value]'  , expected: '[attr|="value"]' },
-      { attr1: '[attr=value]', attr2: '[attr~=value]'  , expected: '[attr~="value"]' },
-      { attr1: '[attr^=value]', attr2: '[attr^=value]' , expected: '[attr^="value"]' },
-      { attr1: '[attr^=value]', attr2: '[attr$=value]' , expected: '[attr*="value"]' },
-      { attr1: '[attr^=value]', attr2: '[attr|=value]' , expected: '[attr^="value"]' },
-      { attr1: '[attr^=value]', attr2: '[attr~=value]' , expected: '[attr*="value"]' },
-      { attr1: '[attr$=value]', attr2: '[attr*=value]' , expected: '[attr*="value"]' },
-      { attr1: '[attr$=value]', attr2: '[attr|=value]' , expected: '[attr*="value"]' },
-      { attr1: '[attr$=value]', attr2: '[attr~=value]' , expected: '[attr*="value"]' },
-      { attr1: '[attr*=value]', attr2: '[attr|=value]' , expected: '[attr*="value"]' },
-      { attr1: '[attr*=value]', attr2: '[attr~=value]' , expected: '[attr*="value"]' },
-      { attr1: '[attr|=value]', attr2: '[attr~=value]' , expected: '[attr*="value"]' },
+      { attr1: '[attr]'        , attr2: '[attr]'               , expected: '[attr]' },
+      { attr1: '[attr=value]'  , attr2: '[attr=value]'         , expected: '[attr="value"]' },
+      { attr1: '[attr=value]'  , attr2: '[attr=valu€]'         , expected: 'null' },
+      { attr1: '[attr^=value]' , attr2: '[attr^=value]'        , expected: '[attr^="value"]' },
+      { attr1: '[attr^=value]' , attr2: '[attr^=valuelong]'    , expected: '[attr^="value"]' },
+      { attr1: '[attr^=value]' , attr2: '[attr^=wrongvalue]'   , expected: 'null' },
+      { attr1: '[attr$=value]' , attr2: '[attr$=value]'        , expected: '[attr$="value"]' },
+      { attr1: '[attr$=value]' , attr2: '[attr$=longvalue]'    , expected: '[attr$="value"]' },
+      { attr1: '[attr$=value]' , attr2: '[attr$=valuewrong]'   , expected: 'null' },
+      { attr1: '[attr*=value]' , attr2: '[attr*=value]'        , expected: '[attr*="value"]' },
+      { attr1: '[attr*=value]' , attr2: '[attr*=longvaluelong]', expected: '[attr*="value"]' },
+      { attr1: '[attr*=value]' , attr2: '[attr*=valu€]'        , expected: 'null' },
+      { attr1: '[attr|=value]' , attr2: '[attr|=value]'        , expected: '[attr|="value"]' },
+      { attr1: '[attr|=value]' , attr2: '[attr|=valuelong]'    , expected: 'null' },
+      { attr1: '[attr|=value]' , attr2: '[attr|=wrongvalue]'   , expected: 'null' },
+      { attr1: '[attr~=value]' , attr2: '[attr~=value]'        , expected: '[attr~="value"]' },
+      { attr1: '[attr~=value]' , attr2: '[attr~=valu€]'        , expected: 'null' },
+      { attr1: '[attr~=value]' , attr2: '[attr~=wrongvalue]'   , expected: 'null' },
     ];
 
-    checkUnionResults(dataset)
-  });
-
-  test('should return null if the union is not possible', () => {
-    const dataset = [
-      { attr1: '[attr]', attr2: '[attr2]'  , expected: 'null' },
-      { attr1: '[attr=one]', attr2: '[attr=two]'   , expected: 'null' },
-      { attr1: '[attr=one]', attr2: '[attr^=two]'  , expected: 'null' },
-      { attr1: '[attr=one]', attr2: '[attr$=two]'  , expected: 'null' },
-      { attr1: '[attr=one]', attr2: '[attr*=two]'  , expected: 'null' },
-      { attr1: '[attr=one]', attr2: '[attr|=two]'  , expected: 'null' },
-      { attr1: '[attr=one]', attr2: '[attr~=two]'  , expected: 'null' },
-    ];
-
-    dataset.forEach((data) => {
-      const attr1  = new CssAttribute(data.attr1);
-      const attr2  = new CssAttribute(data.attr2);
-      const union1 = attr1.union(attr2)
-      const union2 = attr2.union(attr1)
-      const result  = `${attr1} u ${attr2} = ${union1}`;
-      const message = `${attr1} u ${attr2} = ${data.expected}`;
+    dataset.map(d => {
+      const params1 = selectorToArray(d.attr1);
+      const params2 = selectorToArray(d.attr2);
       
-      expect(`${result}`).toEqual(message);
-      expect(`${union1}`).toEqual(`${union2}`);
+      return { ...d, attr1: new CssAttribute(params1), attr2: new CssAttribute(params2) };
+    }).forEach(d => {
+      const expected = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.expected}`;
+      const result = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.attr1.union(d.attr2)}`;
+
+      expect(result).toEqual(expected);
     });
   });
-})
 
-describe('intersection', () => {
-  const checkIntersectionResults = (dataset: ExpectDataset[]) => checkResults(dataset, 'intersection');
+  // test('should work with multiple matchers', () => {
+  //   const dataset = [
+  //     {
+  //       attr1: '[attr][attr^=test]',
+  //       attr2: '[attr][attr=test]',
+  //       expected: '[attr^="test"]'
+  //     },
+  //     {
+  //       attr1: '[attr$=test][attr^=test]',
+  //       attr2: '[attr=test]',
+  //       expected: '[attr$="test"][attr^="test"]'
+  //     },
+  //     {
+  //       attr1: '[attr^=test][attr*=value]',
+  //       attr2: '[attr=value]',
+  //       expected: 'null'
+  //     },
+  //     {
+  //       attr1: '[attr^=start][attr$=end]',
+  //       attr2: '[attr^=startlong][attr$=longend]',
+  //       expected: '[attr$="end"][attr^="start"]'
+  //     },
+  //     {
+  //       attr1: '[attr^=start][attr$=end]',
+  //       attr2: '[attr^=startlong][attr~=occurr][attr$=longend]',
+  //       expected: '[attr$="end"][attr^="start"]'
+  //     },
+  //     {
+  //       attr1: '[attr^=start][attr*=contain][attr$=end]',
+  //       attr2: '[attr^=startlong][attr$=longend]',
+  //       expected: 'null'
+  //     },
+  //   ];
 
-  test('should do the instersection for presence attribute matcher', () => {
+  //   dataset.map(d => {
+  //     return {
+  //       ...d,
+  //       attr1: new CssAttribute(d.attr1),
+  //       attr2: new CssAttribute(d.attr2),
+  //     };
+  //   }).forEach(d => {
+  //     const expected = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.expected}`;
+  //     const result = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.attr1.union(d.attr2)}`;
+
+  //     expect(result).toEqual(expected);
+  //   });
+  // });
+});
+
+describe.skip('intersection', () => {
+  test('should work with simple matchers', () => {
     const dataset = [
-      { attr1: '[attr]', attr2: '[attr2]'       , expected: 'null' },
-      { attr1: '[attr]', attr2: '[attr=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr]', attr2: '[attr^=value]' , expected: '[attr^="value"]' },
-      { attr1: '[attr]', attr2: '[attr$=value]' , expected: '[attr$="value"]' },
-      { attr1: '[attr]', attr2: '[attr*=value]' , expected: '[attr*="value"]' },
-      { attr1: '[attr]', attr2: '[attr|=value]' , expected: '[attr|="value"]' },
-      { attr1: '[attr]', attr2: '[attr~=value]' , expected: '[attr~="value"]' },
+      { attr1: '[attr]'        , attr2: '[attr]'       , expected: '[attr]' },
+      { attr1: '[attr=value]'  , attr2: '[attr=valu€]' , expected: 'undefined' },
+      { attr1: '[attr=value]'  , attr2: '[attr=value]' , expected: '[attr="value"]' },
+      { attr1: '[attr=value]'  , attr2: '[attr$=value]', expected: '[attr="value"]' },
     ];
 
-    checkResults(dataset, 'intersection');
+    dataset.map(d => {
+      const params1 = selectorToArray(d.attr1);
+      const params2 = selectorToArray(d.attr2);
+      
+      return { ...d, attr1: new CssAttribute(params1), attr2: new CssAttribute(params2) };
+    }).forEach(d => {
+      const expected = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.expected}`;
+      const result = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.attr1.intersection(d.attr2)}`;
+
+      expect(result).toEqual(expected);
+    });
   });
 
-  test('should do the instersection for equal attribute matcher', () => {
-    const dataset = [
-      // Presence
-      { attr1: '[attr=value]', attr2: '[attr]'         , expected: '[attr="value"]' },
-      { attr1: '[attr=value]', attr2: '[attrX]'        , expected: 'null' },
-      // Equals =
-      { attr1: '[attr=value]', attr2: '[attr=value]'   , expected: '[attr="value"]' },
-      { attr1: '[attr=value]', attr2: '[attr=XXXXX]'   , expected: 'null' },
-      // Prefix ^
-      { attr1: '[attr=value]', attr2: '[attr^=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr=value]', attr2: '[attr^=valueX]' , expected: 'null' },
-      { attr1: '[attr=value]', attr2: '[attr^=Xvalue]' , expected: 'null' },
-      // Suffix $
-      { attr1: '[attr=value]', attr2: '[attr$=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr=value]', attr2: '[attr$=valueX]' , expected: 'null' },
-      { attr1: '[attr=value]', attr2: '[attr$=Xvalue]' , expected: 'null' },
-      // Contains *
-      { attr1: '[attr=value]', attr2: '[attr*=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr=value]', attr2: '[attr*=valueX]' , expected: 'null' },
-      { attr1: '[attr=value]', attr2: '[attr*=Xvalue]' , expected: 'null' },
-      // Subcode |
-      { attr1: '[attr=value]', attr2: '[attr|=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr=value]', attr2: '[attr|=valueX]' , expected: 'null' },
-      { attr1: '[attr=value]', attr2: '[attr|=Xvalue]' , expected: 'null' },
-      // Occurence ~
-      { attr1: '[attr=value]', attr2: '[attr~=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr=value]', attr2: '[attr~=valueX]' , expected: 'null' },
-      { attr1: '[attr=value]', attr2: '[attr~=Xvalue]' , expected: 'null' },
-    ];
+  // test('should concat matchers if there is no intersection between them', () => {
+  //   const cssAttr1 = new CssAttribute('[attr^=start][attr~=occur]');
+  //   const cssAttr2 = new CssAttribute('[attr*=contain][attr$=end]');
+  //   const expected = new CssAttribute('[attr^=start][attr~=occur][attr*=contain][attr$=end]');
 
-    checkIntersectionResults(dataset);
-  });
+  //   expect(`${cssAttr1.intersection(cssAttr2)}`).toEqual(`${expected}`);
+  // });
 
-  
+  // test('should merge matchers if there is intersection between them', () => {
+  //   // TODO: change values
+  //   const cssAttr1 = new CssAttribute('[attr^=start][attr*=contain][attr$=longend]');
+  //   const cssAttr2 = new CssAttribute('[attr^=startlong][attr*=xcontainx][attr$=end]');
+  //   const expected = new CssAttribute('[attr^=startlong][attr*=xcontainx][attr$=longend]');
 
-  test('should do the instersection for prefix matcher', () => {
-    const dataset = [
-      // Presence
-      { attr1: '[attr^=value]', attr2: '[attr]'         , expected: '[attr^="value"]' },
-      { attr1: '[attr^=value]', attr2: '[attrX]'        , expected: 'null' },
-      // Equals =
-      { attr1: '[attr^=value]', attr2: '[attr=value]'   , expected: '[attr="value"]' },
-      { attr1: '[attr^=value]', attr2: '[attr=XXXXX]'   , expected: 'null' },
-      // Prefix ^
-      { attr1: '[attr^=value]', attr2: '[attr^=value]'  , expected: '[attr^="value"]' },
-      { attr1: '[attr^=value]', attr2: '[attr^=valueX]' , expected: '[attr^="valueX"]' },
-      { attr1: '[attr^=value]', attr2: '[attr^=Xvalue]' , expected: 'null' },
-      // Suffix $
-      { attr1: '[attr^=value]', attr2: '[attr$=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr^=value]', attr2: '[attr$=valueX]' , expected: '[attr="valueX"]' },
-      { attr1: '[attr^=value]', attr2: '[attr$=Xvalue]' , expected: 'null' },
-      // Contains *
-      { attr1: '[attr^=value]', attr2: '[attr*=value]'  , expected: '[attr^="value"]' },
-      { attr1: '[attr^=value]', attr2: '[attr*=valueX]' , expected: '[attr^="valueX"]' }, // ???
-      { attr1: '[attr^=value]', attr2: '[attr*=Xvalue]' , expected: 'null' },
-      // Subcode |
-      { attr1: '[attr^=value]', attr2: '[attr|=value]'  , expected: '[attr|="value"]' },
-      { attr1: '[attr^=value]', attr2: '[attr|=valueX]' , expected: '[attr|="valueX"]' }, // ???
-      { attr1: '[attr^=value]', attr2: '[attr|=Xvalue]' , expected: 'null' },
-      // Occurence ~
-      { attr1: '[attr^=value]', attr2: '[attr~=value]'  , expected: '[attr="value"]' },
-      // { attr1: '[attr^=value]', attr2: '[attr~=valueX]' , expected: '[attr="valueX"]' }, // ???
-      { attr1: '[attr^=value]', attr2: '[attr~=Xvalue]' , expected: 'null' },
-    ];
-
-    checkIntersectionResults(dataset);
-  });
-
-  test('should do the instersection for suffix matcher', () => {
-    const dataset = [
-      // Presence
-      { attr1: '[attr$=value]', attr2: '[attr]'         , expected: '[attr$="value"]' },
-      { attr1: '[attr$=value]', attr2: '[attrX]'        , expected: 'null' },
-      // Equals =
-      { attr1: '[attr$=value]', attr2: '[attr=value]'   , expected: '[attr="value"]' },
-      { attr1: '[attr$=value]', attr2: '[attr=XXXXX]'   , expected: 'null' },
-      // Prefix ^
-      { attr1: '[attr$=value]', attr2: '[attr^=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr$=value]', attr2: '[attr^=valueX]' , expected: 'null' },
-      // { attr1: '[attr$=value]', attr2: '[attr^=Xvalue]' , expected: '[attr="valueX"]' }, // ???
-      // Suffix $
-      { attr1: '[attr$=value]', attr2: '[attr$=value]'  , expected: '[attr$="value"]' },
-      { attr1: '[attr$=value]', attr2: '[attr$=valueX]' , expected: 'null' },
-      { attr1: '[attr$=value]', attr2: '[attr$=Xvalue]' , expected: '[attr$="Xvalue"]' },
-      // Contains *
-      { attr1: '[attr$=value]', attr2: '[attr*=value]'  , expected: '[attr$="value"]' },
-      { attr1: '[attr$=value]', attr2: '[attr*=valueX]' , expected: 'null' },
-      // { attr1: '[attr$=value]', attr2: '[attr*=Xvalue]' , expected: '[attr$="Xvalue"]' }, // ???
-      // Subcode |
-      { attr1: '[attr$=value]', attr2: '[attr|=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr$=value]', attr2: '[attr|=valueX]' , expected: 'null' },
-      // { attr1: '[attr$=value]', attr2: '[attr|=Xvalue]' , expected: '[attr="Xvalue"]' }, // ???
-      // Occurence ~
-      { attr1: '[attr$=value]', attr2: '[attr~=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr$=value]', attr2: '[attr~=valueX]' , expected: 'null' },
-      // { attr1: '[attr$=value]', attr2: '[attr~=Xvalue]' , expected: '[attr="Xvalue"]' }, // ???
-    ];
-
-    checkIntersectionResults(dataset);
-  });
-
-  test('should do the instersection for contains matcher', () => {
-    const dataset = [
-      // Presence
-      { attr1: '[attr*=value]', attr2: '[attr]'         , expected: '[attr*="value"]' },
-      { attr1: '[attr*=value]', attr2: '[attrX]'        , expected: 'null' },
-      // Equals =
-      { attr1: '[attr*=value]', attr2: '[attr=value]'   , expected: '[attr="value"]' },
-      { attr1: '[attr*=value]', attr2: '[attr=XXXXX]'   , expected: 'null' },
-      // Prefix ^
-      { attr1: '[attr*=value]', attr2: '[attr^=value]'  , expected: '[attr^="value"]' },
-      { attr1: '[attr*=value]', attr2: '[attr^=valueX]' , expected: '[attr^="valueX"]' },
-      { attr1: '[attr*=value]', attr2: '[attr^=Xvalue]' , expected: '[attr^="Xvalue"]' },
-      // Suffix $
-      { attr1: '[attr*=value]', attr2: '[attr$=value]'  , expected: '[attr$="value"]' },
-      { attr1: '[attr*=value]', attr2: '[attr$=valueX]' , expected: '[attr$="valueX"]' },
-      { attr1: '[attr*=value]', attr2: '[attr$=Xvalue]' , expected: '[attr$="Xvalue"]' },
-      // Contains *
-      { attr1: '[attr*=value]', attr2: '[attr*=value]'  , expected: '[attr*="value"]' },
-      { attr1: '[attr*=value]', attr2: '[attr*=valueX]' , expected: '[attr*="valueX"]' },
-      { attr1: '[attr*=value]', attr2: '[attr*=Xvalue]' , expected: '[attr*="Xvalue"]' },
-      // Subcode |
-      { attr1: '[attr*=value]', attr2: '[attr|=value]'  , expected: '[attr|="value"]' },
-      { attr1: '[attr*=value]', attr2: '[attr|=valueX]' , expected: '[attr|="valueX"]' },
-      { attr1: '[attr*=value]', attr2: '[attr|=Xvalue]' , expected: '[attr|="Xvalue"]' },
-      // Occurence ~
-      { attr1: '[attr*=value]', attr2: '[attr~=value]'  , expected: '[attr~="value"]' },
-      { attr1: '[attr*=value]', attr2: '[attr~=valueX]' , expected: '[attr~="valueX"]' },
-      { attr1: '[attr*=value]', attr2: '[attr~=Xvalue]' , expected: '[attr~="Xvalue"]' },
-    ];
-
-    checkIntersectionResults(dataset);
-  });
-
-  test('should do the instersection for subcode matcher', () => {
-    const dataset = [
-      // Presence
-      { attr1: '[attr|=value]', attr2: '[attr]'         , expected: '[attr|="value"]' },
-      { attr1: '[attr|=value]', attr2: '[attrX]'        , expected: 'null' },
-      // Equals =
-      { attr1: '[attr|=value]', attr2: '[attr=value]'   , expected: '[attr="value"]' },
-      { attr1: '[attr|=value]', attr2: '[attr=XXXXX]'   , expected: 'null' },
-      // Prefix ^
-      { attr1: '[attr|=value]', attr2: '[attr^=value]'  , expected: '[attr|="value"]' },
-      { attr1: '[attr|=value]', attr2: '[attr^=valueX]' , expected: 'null' },
-      { attr1: '[attr|=value]', attr2: '[attr^=Xvalue]' , expected: 'null' },
-      // Suffix $
-      { attr1: '[attr|=value]', attr2: '[attr$=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr|=value]', attr2: '[attr$=valueX]' , expected: 'null' },
-      { attr1: '[attr|=value]', attr2: '[attr$=Xvalue]' , expected: 'null' },
-      // Contains *
-      { attr1: '[attr|=value]', attr2: '[attr*=value]'  , expected: '[attr|="value"]' },
-      { attr1: '[attr|=value]', attr2: '[attr*=valueX]' , expected: 'null' },
-      { attr1: '[attr|=value]', attr2: '[attr*=Xvalue]' , expected: 'null' },
-      // Subcode |
-      { attr1: '[attr|=value]', attr2: '[attr|=value]'  , expected: '[attr|="value"]' },
-      { attr1: '[attr|=value]', attr2: '[attr|=valueX]' , expected: 'null' },
-      { attr1: '[attr|=value]', attr2: '[attr|=Xvalue]' , expected: 'null' },
-      // Occurence ~
-      { attr1: '[attr|=value]', attr2: '[attr~=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr|=value]', attr2: '[attr~=valueX]' , expected: 'null' },
-      { attr1: '[attr|=value]', attr2: '[attr~=Xvalue]' , expected: 'null' },
-    ];
-
-    checkIntersectionResults(dataset);
-  });
-
-  test('should do the instersection for occurrence matcher', () => {
-    const dataset = [
-      // Presence
-      { attr1: '[attr~=value]', attr2: '[attr]'         , expected: '[attr~="value"]' },
-      { attr1: '[attr~=value]', attr2: '[attrX]'        , expected: 'null' },
-      // Equals =
-      { attr1: '[attr~=value]', attr2: '[attr=value]'   , expected: '[attr="value"]' },
-      { attr1: '[attr~=value]', attr2: '[attr=XXXXX]'   , expected: 'null' },
-      // Prefix ^
-      { attr1: '[attr~=value]', attr2: '[attr^=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr~=value]', attr2: '[attr^=valueX]' , expected: 'null' },
-      { attr1: '[attr~=value]', attr2: '[attr^=Xvalue]' , expected: 'null' },
-      // Suffix $
-      { attr1: '[attr~=value]', attr2: '[attr$=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr~=value]', attr2: '[attr$=valueX]' , expected: 'null' },
-      { attr1: '[attr~=value]', attr2: '[attr$=Xvalue]' , expected: 'null' },
-      // Contains *
-      { attr1: '[attr~=value]', attr2: '[attr*=value]'  , expected: '[attr~="value"]' },
-      { attr1: '[attr~=value]', attr2: '[attr*=valueX]' , expected: 'null' },
-      { attr1: '[attr~=value]', attr2: '[attr*=Xvalue]' , expected: 'null' },
-      // Subcode |
-      { attr1: '[attr~=value]', attr2: '[attr|=value]'  , expected: '[attr="value"]' },
-      { attr1: '[attr~=value]', attr2: '[attr|=valueX]' , expected: 'null' },
-      { attr1: '[attr~=value]', attr2: '[attr|=Xvalue]' , expected: 'null' },
-      // Occurence ~
-      { attr1: '[attr~=value]', attr2: '[attr~=value]'  , expected: '[attr~="value"]' },
-      { attr1: '[attr~=value]', attr2: '[attr~=valueX]' , expected: 'null' },
-      { attr1: '[attr~=value]', attr2: '[attr~=Xvalue]' , expected: 'null' },
-    ];
-
-    checkIntersectionResults(dataset);
-  });
-})
+  //   expect(`${cssAttr1.intersection(cssAttr2)}`).toEqual(`${expected}`);
+  // });
+});

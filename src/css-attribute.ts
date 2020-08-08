@@ -1,229 +1,260 @@
-import { CssAttributeMatcher } from './types';
+import { CssAttributeMatcher } from './css-attribute-matcher';
+import { CssMatcherFactory } from './matchers/css-matcher-factory';
 
-const logger = (att1: CssAttribute, att2: CssAttribute) : (...args:any[]) => void => {
-  if (att1.matcher === '^' && att2.matcher ==='$') {
-    return (...args) => console.log(args);
-  }
-  // console.log('/dev/null');
-  return () => void 0;
-};
-
-const sameMatchers = (matchers: CssAttributeMatcher[], expected: CssAttributeMatcher[]) => {
-  const sortedMatchers = matchers.sort();
-  const sortedExpected = expected.sort();
-
-  return sortedMatchers.reduce((same, matcher, index) => {
-    return same && matcher === sortedExpected[index];
-  }, true);
-};
 
 export class CssAttribute {
-  selector: string;
   name    : string;
-  matcher : CssAttributeMatcher;
-  value   : string;
+  matchers: CssAttributeMatcher[] = [];
 
-  constructor ( sel: string ) {
-    const parts   = sel.slice(1,-1).split('=');
-    const nameRx  = /^[^\t\n\f \/>"'=]+$/;
-    const matchRx = /[\^\$~\|\*]/;
-    const valueRx = /^('|")[^'"]+\1$|^[^'"]+$/;
-    const matchEx = matchRx.exec(parts[0]);
+  constructor ([name, symbol, value]: string[]) {
+    this.name = name;
+    symbol = symbol || '';
+    value  = value ? `'${value}'` : '';
 
-    let name    = matchEx ? parts[0].slice(0, -1) : parts[0];
-    let value   = parts[1] || '';
-    let matcher = ((matchEx && matchEx[0]) || (value ? '=' : '')) as CssAttributeMatcher;
+    const matcher = CssMatcherFactory.create(`${symbol}${value}`);
+    let intersection;
 
-    if (!nameRx.test(name)) {
-      throw new SyntaxError(`Invalid atrribute name in ${sel}`);
-    }
-    if (matcher !== CssAttributeMatcher.Presence && !valueRx.test(value)) {
-      throw new SyntaxError(`Invalid atrribute value in ${sel}`);
+    for (let i = 0; i < this.matchers.length; i++) {
+      intersection = matcher.intersection(this.matchers[i]);
+      
+      if (intersection) {
+        this.matchers[i] = CssMatcherFactory.create(intersection);
+        break;
+      }
     }
 
-    value = value.replace(/^["']|["']$/g, '');
-
-    this.selector = sel;
-    this.name     = name;
-    this.matcher  = matcher;
-    this.value    = value;
-  }
-
-  includes ( attr: CssAttribute ): boolean {
-    if ( this.name !== attr.name ) {
-      return false;
-    }
-
-    switch (this.matcher) {
-      case CssAttributeMatcher.Presence:
-        return true;
-      case CssAttributeMatcher.Equal:
-        return this.equalIncludes(attr);
-      case CssAttributeMatcher.Prefix:
-        return this.prefixIncludes(attr);
-      case CssAttributeMatcher.Suffix:
-        return this.suffixIncludes(attr);
-      case CssAttributeMatcher.Contains:
-        return this.containsIncludes(attr);
-      case CssAttributeMatcher.Subcode:
-        return this.subcodeIncludes(attr);
-      case CssAttributeMatcher.Occurrence:
-        return this.occurrenceIncludes(attr);
+    if (!intersection) {
+      this.matchers.push(matcher);
     }
   }
 
-  union ( attr: CssAttribute ): CssAttribute | null {
-    if ( this.name !== attr.name ) {
-       return null;
+  
+
+  supersetOf ( attr: CssAttribute ): boolean {
+    const thisMatchers = this.matchers;
+    const attrMatchers = attr.matchers;
+
+    // To be a superset all matchers in this
+    // - must be a superset of at least one attrMatcher
+    // - must not have a void intersection with any attrMatcher
+    for (let matcher of thisMatchers) {
+      const supersetIndex = attrMatchers.findIndex((attrMatcher) => matcher.supersetOf(attrMatcher));
+      const voidIndex = attrMatchers.findIndex((attrMatcher) => matcher.intersection(attrMatcher) === void 0);
+
+      if ( supersetIndex === -1 || voidIndex !== -1 ) {
+        return false;
+      }
     }
 
-    // Sepcial case where each includes the other
-    const matchers = [CssAttributeMatcher.Prefix, CssAttributeMatcher.Subcode];
-    if (
-      this.value === attr.value &&
-      matchers.indexOf(this.matcher) !== -1 &&
-      matchers.indexOf(attr.matcher) !== -1
-    ) {
-      return this.matcher === CssAttributeMatcher.Prefix ? this : attr;
-    }
+    return true;
+  }
 
-    if ( this.includes(attr) ) {
-      return this;
-    }
+  subsetOf ( attr: CssAttribute ): boolean {
+    return attr.supersetOf(this);
+  }
 
-    if ( attr.includes(this) ) {
+  union( attr: CssAttribute ): CssAttribute | null {
+    const union = this.supersetOf(attr) ? this :
+                  attr.supersetOf(this) ? attr : null;
+
+    return union;
+  }
+
+  intersection( attr: CssAttribute ): CssAttribute | void {
+    if ( this.supersetOf(attr) ) {
       return attr;
     }
 
-    if ( this.value.indexOf(attr.value) !== -1 ) {
-      return new CssAttribute(`[${this.name}*="${attr.value}"]`);
-    }
-
-    if ( attr.value.indexOf(this.value) !== -1 ) {
-      return new CssAttribute(`[${this.name}*="${this.value}"]`);
-    }
-
-    return null;
-  }
-
-  intersection ( attr: CssAttribute ): CssAttribute | null {
-    if ( this.name !== attr.name ) {
-       return null;
-    }
-
-    const log = logger(this, attr);
-
-    // Sepcial cases where
-    // 1. starting and ending with the same vale
-    // 2. starting and occurence with the same vale
-    if (
-      this.value === attr.value &&
-      (
-        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Prefix, CssAttributeMatcher.Suffix]) ||
-        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Prefix, CssAttributeMatcher.Occurrence]) ||
-        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Subcode, CssAttributeMatcher.Suffix]) ||
-        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Suffix, CssAttributeMatcher.Occurrence]) ||
-        sameMatchers([this.matcher, attr.matcher], [CssAttributeMatcher.Subcode, CssAttributeMatcher.Occurrence])
-      )
-    ) {
-      return new CssAttribute(`[${this.name}="${this.value}"]`);
-    }
-
-    if (
-      (attr.value.startsWith(this.value) &&
-      this.matcher === CssAttributeMatcher.Prefix &&
-      attr.matcher === CssAttributeMatcher.Suffix) ||
-      (this.value.startsWith(attr.value) &&
-      this.matcher === CssAttributeMatcher.Suffix &&
-      attr.matcher === CssAttributeMatcher.Prefix)
-    ) {
-      const value = this.matcher === CssAttributeMatcher.Prefix ? attr.value : this.value;
-      return new CssAttribute(`[${this.name}="${value}"]`);
-    }
-
-    if ( this.includes(attr) ) {
-      log(`${this} \u2283 ${attr}`);
-      return attr;
-    }
-
-    if ( attr.includes(this) ) {
-      log(`${this} \u2282 ${attr}`);
+    if ( attr.supersetOf(this) ) {
       return this;
     }
 
-    log(`${this} nothing ${attr}`);
+    const thisMatchers = this.matchers;
+    const attrMatchers = attr.matchers;
+    const intersectionMatchers: CssAttributeMatcher[] = [];
 
-    return null;
+    for ( let matcher of thisMatchers ) {
+      const voidIndex = attrMatchers.findIndex((attrMatcher) => matcher.intersection(attrMatcher) === void 0);
+
+      if ( voidIndex !== -1 ) {
+        return void 0;
+      }
+      
+      const intersectIndex = attrMatchers.findIndex((attrMatcher) => !!matcher.intersection(attrMatcher));
+
+      if ( intersectIndex !== -1 ) {
+        const matcherString = matcher.intersection(attrMatchers[intersectIndex]);
+
+        intersectionMatchers.push(CssMatcherFactory.create(`${matcherString}`));
+        attrMatchers.splice(intersectIndex, 1);
+      } else {
+        intersectionMatchers.push(matcher);
+      }
+    }
+
+    for ( let matcher of attrMatchers ) {
+      intersectionMatchers.push(matcher);
+    }
+
+    const intersectionAttr = new CssAttribute([this.name]);
+    intersectionAttr.matchers = intersectionMatchers;
+
+    return intersectionAttr;
   }
 
   toString(): string {
-    if (this.matcher === CssAttributeMatcher.Presence) {
-      return `[${this.name}]`;
-    }
-    return  `[${this.name}${this.matcher.replace('=', '')}="${this.value}"]`;
-  }
-
-  private equalIncludes ( attr: CssAttribute ): boolean {
-    return attr.matcher === CssAttributeMatcher.Equal && this.value === attr.value;
-  }
-
-  private prefixIncludes ( attr: CssAttribute ): boolean {
-    if (
-      attr.matcher === CssAttributeMatcher.Prefix ||
-      attr.matcher === CssAttributeMatcher.Subcode ||
-      attr.matcher === CssAttributeMatcher.Equal
-    ) {
-      return attr.value.startsWith(this.value);
-    }
-
-    return false;
-  }
-
-  private suffixIncludes ( attr: CssAttribute ): boolean {
-    if (
-      attr.matcher === CssAttributeMatcher.Suffix ||
-      attr.matcher === CssAttributeMatcher.Equal
-    ) {
-      return attr.value.endsWith(this.value);
-    }
-
-    return false;
-  }
-
-  private containsIncludes ( attr: CssAttribute ): boolean {
-    if (
-      attr.matcher === CssAttributeMatcher.Prefix ||
-      attr.matcher === CssAttributeMatcher.Suffix ||
-      attr.matcher === CssAttributeMatcher.Subcode ||
-      attr.matcher === CssAttributeMatcher.Occurrence ||
-      attr.matcher === CssAttributeMatcher.Contains ||
-      attr.matcher === CssAttributeMatcher.Equal
-    ) {
-      return attr.value.indexOf(this.value) !== -1;
-    }
-
-    return false;
-  }
-
-  private subcodeIncludes ( attr: CssAttribute ): boolean {
-    if (
-      attr.matcher === CssAttributeMatcher.Subcode ||
-      attr.matcher === CssAttributeMatcher.Equal
-    ) {
-      return attr.value === this.value;
-    }
-
-    return false;
-  }
-
-  private occurrenceIncludes ( attr: CssAttribute ): boolean {
-    if (
-      attr.matcher === CssAttributeMatcher.Occurrence ||
-      attr.matcher === CssAttributeMatcher.Equal
-    ) {
-      return attr.value === this.value;
-    }
-
-    return false;
+    return this.matchers
+      .map(matcher => `${matcher}`)
+      .sort()
+      .reduce((prev, matcher) => `${prev}[${this.name}${matcher}]`, '');
   }
 }
+
+// const regexs: { [type: string]: RegExp }  = {
+//   selector: /\[[^\[\]]+\]/,
+//   name    : /^[^\t\n\f \/>"'=]+$/,
+//   matcher : /[\^\$~\|\*]/,
+//   value   : /^('|")[^'"]+\1$|^[^'"]+$/,
+// }
+
+
+// export class CssAttributeOld {
+//   name    : string;
+//   matchers: CssAttributeMatcher[] = [];
+
+//   constructor ( selector: string ) {
+//     const regex = new RegExp(`^(${regexs.selector.source})+$`);
+
+//     if ( !regex.test(selector) ) {
+//       throw new SyntaxError(`Selector ${selector} is not well formed`);
+//     }
+
+//     while ( selector ) {
+//       const matched = selector.match(regexs.selector);
+
+//       if ( matched ) {
+//         const sel = matched[0];
+
+//         this.parseMatcher(matched[0]);
+//         selector = selector.replace(sel, '');
+//       }
+//     }
+//   }
+
+  
+
+//   supersetOf ( attr: CssAttribute ): boolean {
+//     const thisMatchers = this.matchers;
+//     const attrMatchers = attr.matchers;
+
+//     // To be a superset all matchers in this
+//     // - must be a superset of at least one attrMatcher
+//     // - must not have a void intersection with any attrMatcher
+//     for (let matcher of thisMatchers) {
+//       const supersetIndex = attrMatchers.findIndex((attrMatcher) => matcher.supersetOf(attrMatcher));
+//       const voidIndex = attrMatchers.findIndex((attrMatcher) => matcher.intersection(attrMatcher) === void 0);
+
+//       if ( supersetIndex === -1 || voidIndex !== -1 ) {
+//         return false;
+//       }
+//     }
+
+//     return true;
+//   }
+
+//   subsetOf ( attr: CssAttribute ): boolean {
+//     return attr.supersetOf(this);
+//   }
+
+//   union( attr: CssAttribute ): CssAttribute | null {
+//     const union = this.supersetOf(attr) ? this :
+//                   attr.supersetOf(this) ? attr : null;
+
+//     return union === null ? null : new CssAttribute(`${union}`);
+//   }
+
+//   intersection( attr: CssAttribute ): CssAttribute | void {
+//     if ( this.supersetOf(attr) ) {
+//       return attr;
+//     }
+
+//     if ( attr.supersetOf(this) ) {
+//       return this;
+//     }
+
+//     const thisMatchers = this.matchers;
+//     const attrMatchers = attr.matchers;
+//     const intersectionMatchers: CssAttributeMatcher[] = [];
+
+//     for ( let matcher of thisMatchers ) {
+//       const voidIndex = attrMatchers.findIndex((attrMatcher) => matcher.intersection(attrMatcher) === void 0);
+
+//       if ( voidIndex !== -1 ) {
+//         return void 0;
+//       }
+      
+//       const intersectIndex = attrMatchers.findIndex((attrMatcher) => !!matcher.intersection(attrMatcher));
+
+//       if ( intersectIndex !== -1 ) {
+//         const matcherString = matcher.intersection(attrMatchers[intersectIndex]);
+
+//         intersectionMatchers.push(CssMatcherFactory.create(`${matcherString}`));
+//         attrMatchers.splice(intersectIndex, 1);
+//       } else {
+//         intersectionMatchers.push(matcher);
+//       }
+//     }
+
+//     for ( let matcher of attrMatchers ) {
+//       intersectionMatchers.push(matcher);
+//     }
+
+//     const intersectionAttr = new CssAttribute(`[${this.name}]`);
+//     intersectionAttr.matchers = intersectionMatchers;
+
+//     return intersectionAttr;
+//   }
+
+//   toString(): string {
+//     return this.matchers
+//       .map(matcher => `${matcher}`)
+//       .sort()
+//       .reduce((prev, matcher) => `${prev}[${this.name}${matcher}]`, '');
+//   }
+
+//   private parseMatcher( selector: string ) {
+//     const equalIndex = selector.indexOf('=');
+//     const hasValue   = equalIndex !== -1;
+//     const hasMatcher = hasValue && regexs.matcher.test(selector.charAt(equalIndex - 1));
+//     const splitIndex = hasMatcher ? equalIndex - 1 : (hasValue ? equalIndex : -1);
+//     let name, rest, matcher, intersection;
+
+//     if ( splitIndex !== -1 ) {
+//       name = selector.substring(1, splitIndex);
+//       rest = selector.substring(splitIndex, selector.length - 1);
+//     } else {
+//       name = selector.slice(1, -1);
+//       rest = '';
+//     }
+
+//     if ( !regexs.name.test(name) ) {
+//       throw new SyntaxError(`Invalid atrribute name in ${selector}`);
+//     }
+
+//     this.name = name;
+//     matcher = CssMatcherFactory.create(rest);
+
+//     for (let i = 0; i < this.matchers.length; i++) {
+//       intersection = matcher.intersection(this.matchers[i]);
+      
+//       if (intersection) {
+//         this.matchers[i] = CssMatcherFactory.create(intersection);
+//         break;
+//       }
+//     }
+
+//     if (!intersection) {
+//       this.matchers.push(matcher);
+//     }
+//   }
+// }

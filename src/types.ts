@@ -1,16 +1,21 @@
-export enum CssTokeType {
+export enum CssTokenType {
   Void,
   Id,
   Element,
   Class,
-  Attribute
+  Attribute,
+  Space,
+  Combinator,
+  Unknown,
 }
 export interface CssToken {
-  type : CssTokeType,
-  value: string;
+  type    : CssTokenType,
+  values  : string[];
+  position: number;
+  length  : number;
 }
 
-export enum CssAttributeMatcher {
+export enum CssMatcherSymbol {
   Presence   = '',
   Equal      = '=',
   Prefix     = '^',
@@ -20,8 +25,52 @@ export enum CssAttributeMatcher {
   Occurrence = '~',
 }
 
-export interface CssAttribute {
-  name   : string;
-  matcher: CssAttributeMatcher;
-  value? : string;
+
+// AST types (TODO: remove???)
+enum CssTypes {
+  Combinator,
+  Space,
+  Selector,
+  SimpleSelector,
+  Element,
+  Hash,
+  Class,
+  Attribute,
+  Pseudo,
+}
+interface CssSelector {
+  type: CssTypes.Selector;
+  simple: CssSimpleSelector;
+  combinator: string | undefined;
+  selector: CssSelector | undefined;
+}
+
+interface CssSimpleSelector {
+  type: CssTypes.SimpleSelector;
+  element: CssElement;
+  hash: CssHash;
+  classes: CssClass[];
+  attributes: CssAttribute[];
+}
+
+interface CssElement {
+  type: CssTypes.Element
+  value: string;
+}
+
+interface CssHash {
+  type: CssTypes.Hash;
+  value: string;
+}
+
+interface CssClass {
+  type: CssTypes.Class;
+  value: string;
+}
+
+interface CssAttribute {
+  type: CssTypes.Attribute;
+  name: string;
+  matcher: string | undefined;
+  value: string | undefined;
 }
