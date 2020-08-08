@@ -34,8 +34,8 @@ export class CssAttributeMatcher {
       return `${this}`;
     }
 
-    // Equals intersect wiht any other matcher
-    // Return void indicating the insterseciont is an empty set
+    // Equals intersect with any other matcher
+    // Return void indicating the intersection is an empty set
     if ( [this.symbol, matcher.symbol].indexOf(CssMatcherSymbol.Equal) !== -1 ) {
       if (matcher.value !== this.value) {
         return void 0;

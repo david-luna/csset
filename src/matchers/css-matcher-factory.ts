@@ -1,5 +1,5 @@
 import { CssAttributeMatcher } from "../css-attribute-matcher";
-import { CssMatcherSymbol } from "../types";
+import { CssMatcherSymbol, CssToken } from "../types";
 import { CssPresenceMatcher } from "./presence-matcher";
 import { CssPrefixMatcher } from "./prefix-matcher";
 import { CssSuffixMatcher } from "./suffix-matcher";
@@ -9,7 +9,7 @@ import { CssOccurrenceMatcher } from "./occurrence-matcher";
 import { CssSubcodeMatcher } from "./subcode-matcher";
 
 interface CssMatcherConstructor {
-  new (vale: string): CssAttributeMatcher
+  new (value: string): CssAttributeMatcher
 }
 
 const clazzez: { [symbol: string]: CssMatcherConstructor }  = {
@@ -27,7 +27,6 @@ const VALUE_REGEXPS = {
   quotes: /^["']|["']$/g,
 };
 
-
 export class CssMatcherFactory {
   static create (selector: string = ''): CssAttributeMatcher {
     const parts  = selector.split('=');
@@ -35,7 +34,7 @@ export class CssMatcherFactory {
     const value  = parts.length > 1 ? parts[1] : '';
 
     if ( !!value && !VALUE_REGEXPS.valid.test(value) ) {
-      throw new SyntaxError(`Invalid atrribute value in ${selector}`);
+      throw new SyntaxError(`Invalid attribute value in ${selector}`);
     }
 
     return new clazzez[symbol](value.replace(VALUE_REGEXPS.quotes, ''));

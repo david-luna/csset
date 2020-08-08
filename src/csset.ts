@@ -1,11 +1,7 @@
-import { CssAttribute } from './types';
+import { CssRule } from "./css-rule";
 
 export class Csset {
-  element  : string;
-  attribs  : Map<string, CssAttribute>;
-  classes  : Map<string, boolean>;
-  children : Csset[];
-  offspring: Csset;
+  rules: CssRule[];
 
   /**
    * Parses the given selector filing up its private properties with metadata
