@@ -2,7 +2,7 @@ import { CssAttribute } from "../src/css-attribute";
 import { intersectionReduce, operationSymbols } from "./test-utils";
 
 const selectorToArray = (s: string): string[] => {
-  const matchRx  = /[\*\^\$\|~]=/;
+  const matchRx  = /[\*\^\$\|~]=|=/;
   const selector = s.replace(/^\[|\]$/g, '');
   const matcher  = matchRx.exec(selector);
   const params: string[] = [];
@@ -11,25 +11,42 @@ const selectorToArray = (s: string): string[] => {
     const matchStr = matcher[0];
     const index    = selector.indexOf(matchStr);
 
-    params.push(selector.slice(0,index - 1));
+    params.push(selector.slice(0, index));
+    params.push(matchStr);
     params.push(selector.slice(index + matchStr.length));
   } else {
     params.push(selector);
   }
 
   return params;
-}
+};
 
 describe('serialisation', () => {
-  test('should return the same string in all cases', () => {
+  test.only('should return the same string in all cases', () => {
     const dataSet = [
       {
-        params  : ['attr', '=', 'value'],
+        params  : selectorToArray('[attr=value]'),
         expected: '[attr="value"]',
       },
       {
-        params  : ['attr', '^=', 'value'],
+        params  : selectorToArray('[attr^=value]'),
         expected: '[attr^="value"]',
+      },
+      {
+        params  : selectorToArray('[attr$=value]'),
+        expected: '[attr$="value"]',
+      },
+      {
+        params  : selectorToArray('[attr*=value]'),
+        expected: '[attr*="value"]',
+      },
+      {
+        params  : selectorToArray('[attr|=value]'),
+        expected: '[attr|="value"]',
+      },
+      {
+        params  : selectorToArray('[attr~=value]'),
+        expected: '[attr~="value"]',
       },
     ];
     
@@ -38,14 +55,6 @@ describe('serialisation', () => {
       expect(`${attr}`).toEqual(data.expected);
     });
   });
-
-  // TODO: combine with intersection
-  // test('should return the same string even if selector has different order', () => {
-  //   const cssAttrStraight = new CssAttribute('[attr][attr^=start][attr$=end][attr*=contain]');
-  //   const cssAttrReversed = new CssAttribute('[attr*=contain][attr$=end][attr^=start][attr]');
-  
-  //   expect(`${cssAttrStraight}`).toEqual(`${cssAttrReversed}`);
-  // });
 });
 
 describe('composition with intersection operation', () => {
@@ -57,7 +66,7 @@ describe('composition with intersection operation', () => {
         ],
         expected: '[attr$="valueB"][attr^="valueA"]' },
     ];
-  
+
     dataset.forEach((data) => {
       const attrs  = data.selectors.map(sel => new CssAttribute(sel));
       const result = intersectionReduce(attrs);
@@ -80,17 +89,35 @@ describe('composition with intersection operation', () => {
         expected: '[attr$="valueA"]'
       },
     ];
-    
-  
+
     dataset.forEach((data) => {
       const attrs  = data.selectors.map(sel => new CssAttribute(sel));
       const result = intersectionReduce(attrs);
       expect(`${result}`).toEqual(data.expected);
     });
   });
+
+  test('should return the same string even if selector has different order', () => {
+    const onwards   = ['[attr]','[attr^=start]','[attr$=end]','[attr*=contain]'];
+    const backwards = onwards.reverse();
+    const arrayToAttr = (arr: string[]): CssAttribute => {
+      const cssArr = arr.map(selectorToArray).map(a => new CssAttribute(a));
+      let cssAttr  = cssArr.reduce((acc, attr) => {
+        return acc.intersection(attr) as CssAttribute;
+      });
+
+      return cssAttr;
+    };
+
+    const cssAttrOnwards   = arrayToAttr(onwards);
+    const cssAttrBackwards = arrayToAttr(backwards);
+
+    
+    expect(`${cssAttrOnwards}`).toEqual(`${cssAttrBackwards}`);
+  });
 });
 
-describe.skip('supersetOf', () => {
+describe('supersetOf', () => {
   test('should work with simple matchers', () => {
     const dataset = [
       { attr1: '[attr]'        , attr2: '[attr]'               , expected: true },
@@ -195,7 +222,7 @@ describe.skip('supersetOf', () => {
   });
 });
 
-describe.skip('union', () => {
+describe('union', () => {
   test('should work with simple matchers', () => {
     const dataset = [
       { attr1: '[attr]'        , attr2: '[attr]'               , expected: '[attr]' },
