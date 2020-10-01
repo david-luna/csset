@@ -1,7 +1,7 @@
-import { CssRule } from '../src/css-rule';
-import { CssTokenType } from '../src/types';
-import { CssAttribute } from '../src/css-attribute';
-import { CssSelectorLexer } from '../src/css-selector-lexer';
+import { CssRule } from './css-rule';
+import { CssTokenType } from './types';
+import { CssAttribute } from './css-attribute';
+import { CssSelectorLexer } from './css-selector-lexer';
 
 const parseSelector = (sel: string): CssRule => {
   const lexer = new CssSelectorLexer(sel);

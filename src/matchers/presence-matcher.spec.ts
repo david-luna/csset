@@ -1,5 +1,5 @@
-import { CssPresenceMatcher } from "../../src/matchers/presence-matcher";
-import { checkMatcherOperation } from '../test-utils';
+import { CssPresenceMatcher } from "./presence-matcher";
+import { checkMatcherOperation } from '../../test/utils';
 
 
 describe('presence matcher', () => {

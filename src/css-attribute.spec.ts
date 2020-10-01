@@ -1,5 +1,5 @@
-import { CssAttribute } from "../src/css-attribute";
-import { intersectionReduce, operationSymbols } from "./test-utils";
+import { CssAttribute } from "./css-attribute";
+import { intersectionReduce, operationSymbols } from "../test/utils";
 
 const selectorToArray = (s: string): string[] => {
   const matchRx  = /[\*\^\$\|~]=|=/;

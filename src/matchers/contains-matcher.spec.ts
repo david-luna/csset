@@ -1,5 +1,5 @@
-import { CssContainsMatcher } from "../../src/matchers/contains-matcher";
-import { checkMatcherOperation } from '../test-utils';
+import { CssContainsMatcher } from "./contains-matcher";
+import { checkMatcherOperation } from '../../test/utils';
 
 
 describe('contains matcher', () => {

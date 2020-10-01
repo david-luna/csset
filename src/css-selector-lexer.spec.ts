@@ -1,5 +1,5 @@
-import { CssSelectorLexer } from "../src/css-selector-lexer";
-import { CssToken, CssTokenType } from "../src/types";
+import { CssSelectorLexer } from "./css-selector-lexer";
+import { CssToken, CssTokenType } from "./types";
 
 
 const tokenize = (selector: string): CssToken[] => {
