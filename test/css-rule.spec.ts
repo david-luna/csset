@@ -1,291 +1,233 @@
 import { CssRule } from '../src/css-rule';
-import { CssMatcherSymbol } from '../src/types';
+import { CssTokenType } from '../src/types';
+import { CssAttribute } from '../src/css-attribute';
+import { CssSelectorLexer } from '../src/css-selector-lexer';
 
-describe.skip('constructor', () => {
-  test('should throw SyntaxError when the selector is wrong', () => {
-    const badSelectors: string[] = [
-      // Empty
-      '',
-      // ID not unique
-      '#id1#id2', 'elem#id1.class#id2',
-      // Element misplaced
-      '[attr]elem',
-      // Attributes with bad syntax
-      '[attr$value]', '[attr/value]',
-      '[attr="value]', '[attr=value"]', '[attr=\'value]', '[attr=value\']',
-      // Classes with bad syntax
-      '.=class', '.&class', '.%class', '.class=', '.class&', '.class%',
-      // Attributes with incopatible values
-      'elem[attr1=value1][attr1=value2]',
-      'elem[attr1^=prefix1][attr1^=prefix2]',
-      'elem[attr1$=suffix1][attr1$=suffix2]',
-      'elem[attr1|=subcode1][attr1|=subcode2]',
-    ];
-  
-    badSelectors.forEach((sel) => {
-      expect(() => console.log(new CssRule(sel))).toThrow(SyntaxError);
-    });
-  });
-  
-  test('should create the instance when the selector is right', () => {
-    const selector = `elem#id.class1[attr1*="value1"].class2[attr2$='value2suff'][attr2^='value2pref']`;
-    const cssrule = new CssRule(selector);
-    const attribs = cssrule.attributes;
-    const classes = cssrule.classes;
-    const attr1   = attribs.get('attr1*');
-    const attr21  = attribs.get('attr2$');
-    const attr22  = attribs.get('attr2^');
+const parseSelector = (sel: string): CssRule => {
+  const lexer = new CssSelectorLexer(sel);
+  const rule  = new CssRule();
+  let token;
 
-    expect(cssrule.id).toEqual('#id');
-    expect(classes.has('class1')).toBeTruthy();
-    expect(classes.has('class2')).toBeTruthy();
-    expect(attribs.has('attr1*')).toBeTruthy();
-    expect(attribs.has('attr2$')).toBeTruthy();
-    expect(attribs.has('attr2^')).toBeTruthy();
-    expect(attr1).toEqual({
-      name   : 'attr1',
-      matcher: CssMatcherSymbol.Contains,
-      value  : 'value1'
-    });
-    expect(attr21).toEqual({
-      name   : 'attr2',
-      matcher: CssMatcherSymbol.Suffix,
-      value  : 'value2suff'
-    });
-    expect(attr22).toEqual({
-      name   : 'attr2',
-      matcher: CssMatcherSymbol.Prefix,
-      value  : 'value2pref'
-    });
-  })
-});
+  while (token = lexer.nextToken()) {
+    switch (token.type) {
+      case CssTokenType.Element:
+        rule.element = token.values[0];
+        break;
+      case CssTokenType.Id:
+        rule.id = token.values[0];
+        break;
+      case CssTokenType.Class:
+        rule.addClass(token.values[0]);
+        break;
+      case CssTokenType.Attribute:
+        rule.addAttribute(new CssAttribute(token.values));
+        break;
+    }
+  }
 
+  return rule;
+};
 
-describe.skip('serialisation', () => {
-  test('should contain the original selector and provide a canonical form', () => {
-    const selector = `elem#id.class1[attr1*="value1"].class2[attr2$='value2suff'][attr2^='value2pref']`;
+describe('serialisation', () => {
+  test('should provide a canonical form regardless of the way it was filled with', () => {
+    const cssrule1 = parseSelector('elem#id.class2.class1[attr1*="value1"][attr2^="value2pref"][attr2$="value2suff"]');
+    const cssrule2 = parseSelector('elem[attr1*="value1"]#id.class2[attr2$="value2suff"].class1[attr2^="value2pref"]');
+
     const expected = `elem#id.class1.class2[attr1*="value1"][attr2$="value2suff"][attr2^="value2pref"]`;
-    const cssrule = new CssRule(selector);
     
-    expect(cssrule.selector).toEqual(selector);
-    expect(`${cssrule}`).toEqual(expected); 
+    expect(`${cssrule1}`).toEqual(expected); 
+    expect(`${cssrule2}`).toEqual(expected); 
   })
 
   test('should merge prefix & suffix different values if they are contained', () => {
-    const selector = `elem#id.class1.class2[attr1^="pref"][attr1^='prefix_value'][attr2$="value"][attr2$='suffix_value']`;
     const expected = `elem#id.class1.class2[attr1^="prefix_value"][attr2$="suffix_value"]`;
-    const cssrule = new CssRule(selector);
-    
-    expect(cssrule.selector).toEqual(selector);
+    const cssrule  = parseSelector('elem#id.class2.class1[attr1^="pref"][attr1^="prefix_value"][attr2$="value"][attr2$="suffix_value"]');
+
     expect(`${cssrule}`).toEqual(expected); 
   })
 });
 
-describe.skip('equals', () => {
+describe('equals', () => {
   test('should be equal regardless of the order', () => {
-    const selector1 = `div#id.class1[attr1*="value1"].class2[attr2$='value2suff'][attr2^='value2pref']`;
-    const selector2 = `div#id.class1.class2[attr1*="value1"][attr2$="value2suff"][attr2^="value2pref"]`;
-    
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
-    
+    const cssrule1 = parseSelector('elem#id.class2.class1[attr1*="value1"][attr2^="value2pref"][attr2$="value2suff"]');
+    const cssrule2 = parseSelector('elem[attr1*="value1"]#id.class2[attr2$="value2suff"].class1[attr2^="value2pref"]');
+
     expect(cssrule1.equals(cssrule2)).toBeTruthy();
   })
 
+  const testSelector = 'div#id.class1.class2[attr1*="value1"][attr2$="value2suff"][attr2^="value2pref"]';
+
   test('should be different if different element', () => {
-    const selector1 = `div#id.class1.class2[attr1*="value1"][attr2$="value2suff"][attr2^="value2pref"]`;
-    const selector2 = `p#id.class1.class2[attr1*="value1"][attr2$="value2suff"][attr2^="value2pref"]`;
-    
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
+    const cssrule1 = parseSelector(testSelector);
+    const cssrule2 = parseSelector(testSelector.replace('div#', 'p#'));
     
     expect(cssrule1.equals(cssrule2)).toBeFalsy();
-  })
+  });
 
   test('should be different if different id', () => {
-    const selector1 = `div#id.class1.class2[attr1*="value1"][attr2$="value2suff"][attr2^="value2pref"]`;
-    const selector2 = `div#id2.class1.class2[attr1*="value1"][attr2$="value2suff"][attr2^="value2pref"]`;
-    
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
+    const cssrule1 = parseSelector(testSelector);
+    const cssrule2 = parseSelector(testSelector.replace('#id', '#id2'));
     
     expect(cssrule1.equals(cssrule2)).toBeFalsy();
-  })
+  });
 
   test('should be different if missing classes', () => {
-    const selector1 = `div#id.class1.class2[attr1*="value1"][attr2$="value2suff"][attr2^="value2pref"]`;
-    const selector2 = `div#id.class1[attr1*="value1"][attr2$="value2suff"][attr2^="value2pref"]`;
-    
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
+    const cssrule1 = parseSelector(testSelector);
+    const cssrule2 = parseSelector(testSelector.replace('.class2', ''));
 
     expect(cssrule1.equals(cssrule2)).toBeFalsy();
-  })
+  });
 
   test('should be different if missing attributes', () => {
-    const selector1 = `div#id.class1.class2[attr1*="value1"][attr2$="value2suff"][attr2^="value2pref"]`;
-    const selector2 = `div#id.class1.class2[attr2$="value2suff"][attr2^="value2pref"]`;
-    
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
+    const cssrule1 = parseSelector(testSelector);
+    const cssrule2 = parseSelector(testSelector.replace('[attr1*="value1"]', ''));
 
     expect(cssrule1.equals(cssrule2)).toBeFalsy();
-  })
+  });
 });
 
-describe.skip('contains', () => {
+describe('contains', () => {
   test('should contain if equal', () => {
-    const selector1 = `div#id.class1.class2`;
-    const selector2 = `div#id.class1.class2`;
-    
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
-    
-    expect(cssrule1.contains(cssrule2)).toBeTruthy();
-  })
+    const cssrule1 = parseSelector('div#id.class1.class2');
+    const cssrule2 = parseSelector('div#id.class1.class2');
+
+    expect(cssrule1.supersetOf(cssrule2)).toBeTruthy();
+  });
 
   test('should contain if not has id', () => {
-    const selector1 = `div.class1.class2`;
-    const selector2 = `div#id.class1.class2`;
-    
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
-    
-    expect(cssrule1.contains(cssrule2)).toBeTruthy();
-  })
+    const cssrule1 = parseSelector('div.class1.class2');
+    const cssrule2 = parseSelector('div#id.class1.class2');
+
+    expect(cssrule1.supersetOf(cssrule2)).toBeTruthy();
+  });
 
   test('should NOT contain if ID is different', () => {
-    const selector1 = `div#id2.class1.class2`;
-    const selector2 = `div#id.class1.class2`;
-    
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
-    
-    expect(cssrule1.contains(cssrule2)).toBeFalsy();
-  })
+    const cssrule1 = parseSelector('div#id2.class1.class2');
+    const cssrule2 = parseSelector('div#id.class1.class2');
+
+    expect(cssrule1.supersetOf(cssrule2)).toBeFalsy();
+  });
 
   test('should contain if element is *', () => {
-    const selector1 = `*#id.class1.class2`;
-    const selector2 = `div#id.class1.class2`;
+    const cssrule1 = parseSelector('*#id.class1.class2');
+    const cssrule2 = parseSelector('div#id.class1.class2');
 
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
-    expect(cssrule1.contains(cssrule2)).toBeTruthy();
-  })
+    expect(cssrule1.supersetOf(cssrule2)).toBeTruthy();
+  });
 
   test('should contain if has less classes', () => {
-    const selector1 = `div#id.class1`;
-    const selector2 = `div#id.class1.class2`;
+    const cssrule1 = parseSelector('div#id.class1');
+    const cssrule2 = parseSelector('div#id.class1.class2');
 
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
-    expect(cssrule1.contains(cssrule2)).toBeTruthy();
-  })
+    expect(cssrule1.supersetOf(cssrule2)).toBeTruthy();
+  });
 
   test('should NOT contain if has more classes', () => {
-    const selector1 = `div#id.class1.class2.class3`;
-    const selector2 = `div#id.class1.class2`;
+    const cssrule1 = parseSelector('div#id.class1.class2.class3');
+    const cssrule2 = parseSelector('div#id.class1.class2');
 
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
-    expect(cssrule1.contains(cssrule2)).toBeFalsy();
-  })
+    expect(cssrule1.supersetOf(cssrule2)).toBeFalsy();
+  });
 
   test('should NOT contain if has different classes', () => {
-    const selector1 = `div#id.klass1`;
-    const selector2 = `div#id.class1.class2`;
+    const cssrule1 = parseSelector('div#id.klass1');
+    const cssrule2 = parseSelector('div#id.class1.class2');
 
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
-    expect(cssrule1.contains(cssrule2)).toBeFalsy();
-  })
+    expect(cssrule1.supersetOf(cssrule2)).toBeFalsy();
+  });
 
   test('should contain if check for the same attribute', () => {
-    const selector1 = `div#id.class1[attr]`;
-    const selector2 = `div#id.class1[attr]`;
+    const cssrule1 = parseSelector('div#id.class1[attr]');
+    const cssrule2 = parseSelector('div#id.class1[attr]');
 
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
-    expect(cssrule1.contains(cssrule2)).toBeTruthy();
-  })
+    expect(cssrule1.supersetOf(cssrule2)).toBeTruthy();
+  });
 
   test('should contain if check for less attributes', () => {
-    const selector1 = `div#id.class1[attr]`;
-    const selector2 = `div#id.class1[attr][attr2]`;
+    const cssrule1 = parseSelector('div#id.class1[attr]');
+    const cssrule2 = parseSelector('div#id.class1[attr][attr2]');
 
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
-    expect(cssrule1.contains(cssrule2)).toBeTruthy();
-  })
+    expect(cssrule1.supersetOf(cssrule2)).toBeTruthy();
+  });
 
   test('should NOT contain if check for different attributes', () => {
-    const selector1 = `div#id.class1[attr][attr3]`;
-    const selector2 = `div#id.class1[attr][attr2]`;
+    const cssrule1 = parseSelector('div#id.class1[attr][attr3]');
+    const cssrule2 = parseSelector('div#id.class1[attr][attr2]');
 
-    const cssrule1 = new CssRule(selector1);
-    const cssrule2 = new CssRule(selector2);
-    expect(cssrule1.contains(cssrule2)).toBeTruthy();
-  })
+    expect(cssrule1.supersetOf(cssrule2)).toBeFalsy();
+  });
 
-  test('should contain if check attribute is more generic (presence agains others)', () => {
-    const selector1 = `div#id.class1[attr]`;
+  test('should contain if check attribute is more generic (presence against others)', () => {
     const selectors = [
-      { sel: `div#id.class1[attr=value]`, res: true },
-      { sel: `div#id.class1[attr^=value]`, res: true },
-      { sel: `div#id.class1[attr$=value]`, res: true },
-      { sel: `div#id.class1[attr*=value]`, res: true },
-      { sel: `div#id.class1[attr|=value]`, res: true },
-      { sel: `div#id.class1[attr~=value]`, res: true },
+      { sel: `=` , res: true },
+      { sel: `^=`, res: true },
+      { sel: `$=`, res: true },
+      { sel: `*=`, res: true },
+      { sel: `|=`, res: true },
+      { sel: `~=`, res: true },
     ];
+    const cssrule1 = parseSelector('div#id.class1[attr]');
 
-    const cssrule1 = new CssRule(selector1);
-    
     selectors.forEach((item) => {
-      expect(cssrule1.contains(new CssRule(item.sel))).toEqual(item.res);
+      const cssrule2 = parseSelector(`div#id.class1[attr${item.sel}"value"]`);
+
+      const superset = cssrule1.supersetOf(cssrule2);
+      const string   = `${cssrule1} supersetOf ${cssrule2} => ${superset}`;
+      const expected = `${cssrule1} supersetOf ${cssrule2} => ${item.res}`;
+      
+      expect(string).toEqual(expected);
     });
-  })
+  });
 
   test('attribute prefix should contain only subcode and others with same prefix or longer', () => {
-    const selector1 = `div#id.class1[attr^=value]`;
     const selectors = [
-      { sel: `div#id.class1[attr]`        , res: false },
-      { sel: `div#id.class1[attr=value]`  , res: false },
-      { sel: `div#id.class1[attr^=value]` , res: true },
-      { sel: `div#id.class1[attr^=value2]`, res: true },
-      { sel: `div#id.class1[attr$=value]` , res: false },
-      { sel: `div#id.class1[attr*=value]` , res: false },
-      { sel: `div#id.class1[attr|=value]` , res: true },
-      { sel: `div#id.class1[attr~=value]` , res: false },
+      { sel: ['attr']              , res: false },
+      { sel: ['attr','=','value']  , res: true },
+      { sel: ['attr','^=','value'] , res: true },
+      { sel: ['attr','^=','value2'], res: true },
+      { sel: ['attr','$=','value'] , res: false },
+      { sel: ['attr','*=','value'] , res: false },
+      { sel: ['attr','|=','value'] , res: true },
+      { sel: ['attr','~=','value'] , res: false },
     ];
+    const cssrule1 = parseSelector('div#id.class1[attr^="value"]');
 
-    const cssrule1 = new CssRule(selector1);
-    
     selectors.forEach((item) => {
-      expect(cssrule1.contains(new CssRule(item.sel))).toEqual(item.res);
-    });
-  })
+      const cssrule2 = parseSelector(`div#id.class1[${item.sel.join('')}]`);
+      const contains = cssrule1.supersetOf(cssrule2);
+      const string   = `${cssrule1} contains ${cssrule2} ${contains}`;
+      const expected = `${cssrule1} contains ${cssrule2} ${item.res}`;
 
-  test('attribute suffix mathcher should contain only others with same suffix or longer', () => {
+      expect(string).toEqual(expected);
+    });
+  });
+
+  test('attribute suffix matcher should contain only others with same suffix or longer', () => {
     const selector1 = `div#id.class1[attr$=value]`;
     const selectors = [
       { sel: `div#id.class1[attr]`        , res: false },
-      { sel: `div#id.class1[attr=value]`  , res: false },
+      { sel: `div#id.class1[attr=value]`  , res: true  },
       { sel: `div#id.class1[attr^=value]` , res: false },
-      { sel: `div#id.class1[attr$=value]` , res: true },
-      { sel: `div#id.class1[attr$=2value]`, res: true },
+      { sel: `div#id.class1[attr$=value]` , res: true  },
+      { sel: `div#id.class1[attr$=2value]`, res: true  },
       { sel: `div#id.class1[attr*=value]` , res: false },
       { sel: `div#id.class1[attr|=value]` , res: false },
       { sel: `div#id.class1[attr~=value]` , res: false },
     ];
 
-    const cssrule1 = new CssRule(selector1);
-    
+    const cssrule1 = parseSelector(selector1);
+
     selectors.forEach((item) => {
-      expect(cssrule1.contains(new CssRule(item.sel))).toEqual(item.res);
+      const cssrule2 = parseSelector(item.sel);
+      const contains = cssrule1.supersetOf(cssrule2);
+      const string   = `${cssrule1} contains ${cssrule2} ${contains}`;
+      const expected = `${cssrule1} contains ${cssrule2} ${item.res}`;
+
+      expect(string).toEqual(expected);
     });
   })
 
-  test('attribute contains matcher should contain all others with same value or onger but not presence', () => {
+  test('attribute contains matcher should contain all others with same value or longer but not presence', () => {
     const selector1 = `div#id.class1[attr*=value]`;
     const selectors = [
       { sel: `div#id.class1[attr]`           , res: false },
@@ -303,12 +245,15 @@ describe.skip('contains', () => {
       { sel: `div#id.class1[attr~=valuelong]`, res: true },
     ];
 
-    const cssrule1 = new CssRule(selector1);
-    
+    const cssrule1 = parseSelector(selector1);
+
     selectors.forEach((item) => {
-      expect(cssrule1.contains(new CssRule(item.sel))).toEqual(item.res);
+      const cssrule2 = parseSelector(item.sel);
+      const contains = cssrule1.supersetOf(cssrule2);
+      const string   = `${cssrule1} contains ${cssrule2} ${contains}`;
+      const expected = `${cssrule1} contains ${cssrule2} ${item.res}`;
+
+      expect(string).toEqual(expected);
     });
   })
-
-  
 });
