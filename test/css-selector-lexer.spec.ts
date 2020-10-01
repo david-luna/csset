@@ -88,7 +88,7 @@ describe('tokenization', () => {
     expect(tokenize('[attr="value"]')).toEqual([
       {
         type    : CssTokenType.Attribute,
-        values  : ['attr', '=', '"value"'],
+        values  : ['attr', '=', 'value'],
         position: 0,
         length  : 14,
       }
@@ -97,7 +97,7 @@ describe('tokenization', () => {
     expect(tokenize('[attr=\'value\']')).toEqual([
       {
         type    : CssTokenType.Attribute,
-        values  : ['attr', '=', '\'value\''],
+        values  : ['attr', '=', 'value'],
         position: 0,
         length  : 14,
       }
@@ -161,7 +161,7 @@ describe('tokenization', () => {
       },
       {
         type    : CssTokenType.Attribute,
-        values  : ['attr1', '=', '\'v1\''],
+        values  : ['attr1', '=', 'v1'],
         position: 31,
         length  : 12,
       },
@@ -173,7 +173,7 @@ describe('tokenization', () => {
       },
       {
         type    : CssTokenType.Attribute,
-        values  : ['attr2', '=', '"v2"'],
+        values  : ['attr2', '=', 'v2'],
         position: 55,
         length  : 12,
       },

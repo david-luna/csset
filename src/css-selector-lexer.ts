@@ -59,7 +59,7 @@ export class CssSelectorLexer {
 
       return {
         type    : matcher.type,
-        values  : partials.filter(v => !!v),
+        values  : this.sanitizeValues(partials),
         position: pos,
         length  : full.length
       };
@@ -74,5 +74,13 @@ export class CssSelectorLexer {
       position: pos,
       length  : sel.length,
     }
-  } 
+  }
+
+  private sanitizeValues(values: string[]): string[] {
+    return values.filter(value => !!value).map(value => {
+      const isQuotedString = /^('|")[^'"]+\1$/.test(value);
+      
+      return isQuotedString ? value.slice(1, -1) : value;
+    });
+  }
 }

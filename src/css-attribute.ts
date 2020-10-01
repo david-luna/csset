@@ -1,15 +1,14 @@
 import { CssAttributeMatcher } from './css-attribute-matcher';
 import { CssMatcherFactory } from './matchers/css-matcher-factory';
 
-
 export class CssAttribute {
   name    : string;
   matchers: CssAttributeMatcher[] = [];
 
   constructor ([name, symbol, value]: string[]) {
     this.name = name;
-    symbol = symbol || '';
-    value  = value ? `'${value}'` : '';
+    symbol    = symbol || '';
+    value     = value;
 
     const matcher = CssMatcherFactory.create(`${symbol}${value}`);
     let intersection;
@@ -27,8 +26,6 @@ export class CssAttribute {
       this.matchers.push(matcher);
     }
   }
-
-  
 
   supersetOf ( attr: CssAttribute ): boolean {
     const thisMatchers = this.matchers;
