@@ -181,19 +181,19 @@ describe('contains', () => {
 
   test('attribute prefix should contain only subcode and others with same prefix or longer', () => {
     const selectors = [
-      { sel: ['attr']              , res: false },
-      { sel: ['attr','=','value']  , res: true },
-      { sel: ['attr','^=','value'] , res: true },
-      { sel: ['attr','^=','value2'], res: true },
-      { sel: ['attr','$=','value'] , res: false },
-      { sel: ['attr','*=','value'] , res: false },
-      { sel: ['attr','|=','value'] , res: true },
-      { sel: ['attr','~=','value'] , res: false },
+      { sel: 'attr'        , res: false },
+      { sel: 'attr=value'  , res: true },
+      { sel: 'attr^=value' , res: true },
+      { sel: 'attr^=value2', res: true },
+      { sel: 'attr$=value' , res: false },
+      { sel: 'attr*=value' , res: false },
+      { sel: 'attr|=value' , res: true },
+      { sel: 'attr~=value' , res: false },
     ];
     const cssrule1 = parseSelector('div#id.class1[attr^="value"]');
 
     selectors.forEach((item) => {
-      const cssrule2 = parseSelector(`div#id.class1[${item.sel.join('')}]`);
+      const cssrule2 = parseSelector(`div#id.class1[${item.sel}]`);
       const contains = cssrule1.supersetOf(cssrule2);
       const string   = `${cssrule1} contains ${cssrule2} ${contains}`;
       const expected = `${cssrule1} contains ${cssrule2} ${item.res}`;

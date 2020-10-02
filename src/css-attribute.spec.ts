@@ -1,66 +1,51 @@
 import { CssAttribute } from "./css-attribute";
 import { intersectionReduce, operationSymbols } from "../test/utils";
+import { CssSelectorLexer } from "./css-selector-lexer";
 
-const selectorToArray = (s: string): string[] => {
-  const matchRx  = /[\*\^\$\|~]=|=/;
-  const selector = s.replace(/^\[|\]$/g, '');
-  const matcher  = matchRx.exec(selector);
-  const params: string[] = [];
+const parseSelector = (sel: string): CssAttribute => {
+  const lexer  = new CssSelectorLexer(sel);
+  let result;
+  let token;
 
-  if (matcher) {
-    const matchStr = matcher[0];
-    const index    = selector.indexOf(matchStr);
-
-    params.push(selector.slice(0, index));
-    params.push(matchStr);
-    params.push(selector.slice(index + matchStr.length));
-  } else {
-    params.push(selector);
+  while (token = lexer.nextToken()) {
+    const attr = new CssAttribute(token.values);
+    result = result ? result.intersection(attr) : attr;
   }
 
-  return params;
+  return result as CssAttribute;
 };
 
-const selectorsArrayToCssAttribute = (selectors: string[]): CssAttribute => {
-  const attrParams = selectors.map(selectorToArray);
-  const attrName = attrParams[0][0];
-
-  return attrParams.reduce((attr, params) => {
-    return attr.intersection(new CssAttribute(params)) as CssAttribute;
-  }, new CssAttribute([attrName]))
-};
-
-describe('serialisation', () => {
-  test.only('should return the same string in all cases', () => {
+describe('serialization', () => {
+  test('should return the same string in all cases', () => {
     const dataSet = [
       {
-        params  : selectorToArray('[attr=value]'),
+        selector: '[attr=value]',
         expected: '[attr="value"]',
       },
       {
-        params  : selectorToArray('[attr^=value]'),
+        selector: '[attr^=value]',
         expected: '[attr^="value"]',
       },
       {
-        params  : selectorToArray('[attr$=value]'),
+        selector: '[attr$=value]',
         expected: '[attr$="value"]',
       },
       {
-        params  : selectorToArray('[attr*=value]'),
+        selector: '[attr*=value]',
         expected: '[attr*="value"]',
       },
       {
-        params  : selectorToArray('[attr|=value]'),
+        selector: '[attr|=value]',
         expected: '[attr|="value"]',
       },
       {
-        params  : selectorToArray('[attr~=value]'),
+        selector: '[attr~=value]',
         expected: '[attr~="value"]',
       },
     ];
     
     dataSet.forEach((data) => {
-      const attr = new CssAttribute(data.params);
+      const attr = parseSelector(data.selector)
       expect(`${attr}`).toEqual(data.expected);
     });
   });
@@ -71,13 +56,14 @@ describe('composition with intersection operation', () => {
     const dataset = [
       {
         selectors: [
-          ['attr','^=', 'valueA'], ['attr','$=', 'valueB'],
+          '[attr^=valueA]', '[attr$=valueB]',
         ],
         expected: '[attr$="valueB"][attr^="valueA"]' },
     ];
 
     dataset.forEach((data) => {
-      const attrs  = data.selectors.map(sel => new CssAttribute(sel));
+      const attrs  = data.selectors.map(parseSelector);
+      console.log(attrs)
       const result = intersectionReduce(attrs);
       expect(`${result}`).toEqual(data.expected);
     });
@@ -109,19 +95,9 @@ describe('composition with intersection operation', () => {
   test('should return the same string even if selector has different order', () => {
     const onwards   = ['[attr]','[attr^=start]','[attr$=end]','[attr*=contain]'];
     const backwards = onwards.reverse();
-    const arrayToAttr = (arr: string[]): CssAttribute => {
-      const cssArr = arr.map(selectorToArray).map(a => new CssAttribute(a));
-      let cssAttr  = cssArr.reduce((acc, attr) => {
-        return acc.intersection(attr) as CssAttribute;
-      });
+    const cssAttrOnwards   = parseSelector(onwards.join(''));
+    const cssAttrBackwards = parseSelector(backwards.join(''));
 
-      return cssAttr;
-    };
-
-    const cssAttrOnwards   = arrayToAttr(onwards);
-    const cssAttrBackwards = arrayToAttr(backwards);
-
-    
     expect(`${cssAttrOnwards}`).toEqual(`${cssAttrBackwards}`);
   });
 });
@@ -150,10 +126,7 @@ describe('supersetOf', () => {
     ];
 
     dataset.map(d => {
-      const params1 = selectorToArray(d.attr1);
-      const params2 = selectorToArray(d.attr2);
-      
-      return { ...d, attr1: new CssAttribute(params1), attr2: new CssAttribute(params2) };
+      return { ...d, attr1: parseSelector(d.attr1), attr2: parseSelector(d.attr2) };
     }).forEach(d => {
       const expected = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.expected}`;
       const result = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.attr1.supersetOf(d.attr2)}`;
@@ -204,8 +177,8 @@ describe('supersetOf', () => {
     dataset.map(d => {
       return {
         ...d,
-        attr1: new CssAttribute(selectorToArray(d.attr1)),
-        attr2: new CssAttribute(selectorToArray(d.attr2)),
+        attr1: parseSelector(d.attr1),
+        attr2: parseSelector(d.attr2),
       };
     }).forEach(d => {
       const expected = `${d.attr1} ${operationSymbols.supersetOf} ${d.attr2} <=> ${d.expected}`;
@@ -224,7 +197,7 @@ describe('supersetOf', () => {
     
   
     dataset.forEach((data) => {
-      const attrs  = data.selectors.map(sel => new CssAttribute(selectorToArray(sel)));
+      const attrs  = data.selectors.map(parseSelector);
       const result = intersectionReduce(attrs);
       expect(`${result}`).toEqual(data.expected);
     });
@@ -255,10 +228,11 @@ describe('union', () => {
     ];
 
     dataset.map(d => {
-      const params1 = selectorToArray(d.attr1);
-      const params2 = selectorToArray(d.attr2);
-      
-      return { ...d, attr1: new CssAttribute(params1), attr2: new CssAttribute(params2) };
+      return {
+        ...d,
+        attr1: parseSelector(d.attr1),
+        attr2: parseSelector(d.attr2)
+      };
     }).forEach(d => {
       const expected = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.expected}`;
       const result = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.attr1.union(d.attr2)}`;
@@ -270,33 +244,33 @@ describe('union', () => {
   test('should work with multiple matchers', () => {
     const dataset = [
       {
-        attr1: ['[attr]','[attr^=test]'],
-        attr2: ['[attr]','[attr=test]'],
+        attr1: '[attr][attr^=test]',
+        attr2: '[attr][attr=test]',
         expected: '[attr^="test"]'
       },
       {
-        attr1: ['[attr$=test]','[attr^=test]'],
-        attr2: ['[attr=test]'],
+        attr1: '[attr$=test][attr^=test]',
+        attr2: '[attr=test]',
         expected: '[attr$="test"][attr^="test"]'
       },
       {
-        attr1: ['[attr^=test]','[attr*=value]'],
-        attr2: ['[attr=value]'],
+        attr1: '[attr^=test][attr*=value]',
+        attr2: '[attr=value]',
         expected: 'null'
       },
       {
-        attr1: ['[attr^=start]','[attr$=end]'],
-        attr2: ['[attr^=startlong]','[attr$=longend]'],
+        attr1: '[attr^=start][attr$=end]',
+        attr2: '[attr^=startlong][attr$=longend]',
         expected: '[attr$="end"][attr^="start"]'
       },
       {
-        attr1: ['[attr^=start]','[attr$=end]'],
-        attr2: ['[attr^=startlong]','[attr~=occurr]','[attr$=longend]'],
+        attr1: '[attr^=start][attr$=end]',
+        attr2: '[attr^=startlong][attr~=occurr][attr$=longend]',
         expected: '[attr$="end"][attr^="start"]'
       },
       {
-        attr1: ['[attr^=start]','[attr*=contain]','[attr$=end]'],
-        attr2: ['[attr^=startlong]','[attr$=longend]'],
+        attr1: '[attr^=start][attr*=contain][attr$=end]',
+        attr2: '[attr^=startlong][attr$=longend]',
         expected: 'null'
       },
     ];
@@ -304,9 +278,8 @@ describe('union', () => {
     dataset.map(d => {
       return {
         ...d,
-        attr1: selectorsArrayToCssAttribute(d.attr1),
-        attr2: selectorsArrayToCssAttribute(d.attr2),
-        
+        attr1: parseSelector(d.attr1),
+        attr2: parseSelector(d.attr2),
       };
     }).forEach(d => {
       const expected = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.expected}`;
@@ -327,10 +300,11 @@ describe('intersection', () => {
     ];
 
     dataset.map(d => {
-      const params1 = selectorToArray(d.attr1);
-      const params2 = selectorToArray(d.attr2);
-      
-      return { ...d, attr1: new CssAttribute(params1), attr2: new CssAttribute(params2) };
+      return {
+        ...d,
+        attr1: parseSelector(d.attr1),
+        attr2: parseSelector(d.attr2),
+      };
     }).forEach(d => {
       const expected = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.expected}`;
       const result = `${d.attr1} ${operationSymbols.union} ${d.attr2} <=> ${d.attr1.intersection(d.attr2)}`;
@@ -340,18 +314,18 @@ describe('intersection', () => {
   });
 
   test('should concat matchers if there is no intersection between them', () => {
-    const cssAttr1 = selectorsArrayToCssAttribute(['[attr^=start]','[attr~=occur]']);
-    const cssAttr2 = selectorsArrayToCssAttribute(['[attr*=contain]','[attr$=end]']);
-    const expected = new CssAttribute(['[attr^=start]','[attr~=occur]','[attr*=contain]','[attr$=end]']);
+    const cssAttr1 = parseSelector('[attr^=start][attr~=occur]');
+    const cssAttr2 = parseSelector('[attr*=contain][attr$=end]');
+    const expected = parseSelector('[attr^=start][attr~=occur][attr*=contain][attr$=end]');
 
     expect(`${cssAttr1.intersection(cssAttr2)}`).toEqual(`${expected}`);
   });
 
-  test('should merge matchers if there is intersection between them', () => {
+  test.only('should merge matchers if there is intersection between them', () => {
     // TODO: change values
-    const cssAttr1 = selectorsArrayToCssAttribute(['[attr^=start]','[attr*=contain]','[attr$=longend]']);
-    const cssAttr2 = selectorsArrayToCssAttribute(['[attr^=startlong]','[attr*=xcontainx]','[attr$=end]']);
-    const expected = new CssAttribute(['[attr^=startlong]','[attr*=xcontainx]','[attr$=longend]']);
+    const cssAttr1 = parseSelector('[attr^=start][attr*=contain][attr$=longend]');
+    const cssAttr2 = parseSelector('[attr^=startlong][attr*=xcontainx][attr$=end]');
+    const expected = parseSelector('[attr^=startlong][attr*=xcontainx][attr$=longend]');
 
     expect(`${cssAttr1.intersection(cssAttr2)}`).toEqual(`${expected}`);
   });

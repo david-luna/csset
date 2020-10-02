@@ -2,6 +2,8 @@
 // https://www.w3.org/TR/CSS22/grammar.html
 // use following tool to work with regex
 // https://regex101.com/
+// TODO: use this npm lib
+// npm install parsel-js
 
 import { CssTokenType, CssToken } from "./types";
 
@@ -20,7 +22,7 @@ const CSS_TOKEN_MATCHERS = [
   },
   {
     type: CssTokenType.Attribute,
-    rx:/^\[(-?[_a-z][_a-z0-9-]*)(?:([\^\$\*\|~]?=)?([_a-z0-9]+|"[^"]*"|'[^']*'))?\]/i
+    rx:/^\[(-?[_a-z][_a-z0-9-]*)(?:([\^\$\*\|~]?=)?([_a-z0-9\u0080-\uFFFF]+|"[^"]*"|'[^']*'))?\]/i
   },
   {
     type: CssTokenType.Combinator,
