@@ -29,6 +29,10 @@ const CSS_TOKEN_MATCHERS = [
     rx:/^(?:\s*)([~>\+])(?:\s*)/
   },
   {
+    type: CssTokenType.Separator,
+    rx:/^(?:\s*)(,)(?:\s*)/
+  },
+  {
     type: CssTokenType.Space,
     rx:/^(\s+)/
   },
@@ -50,7 +54,6 @@ export class CssSelectorLexer {
     const pos     = this.position;
     const matcher = CSS_TOKEN_MATCHERS.find((t) => t.rx.test(sel));
     let execArray: RegExpExecArray | null | undefined;
-    let token    : CssToken;
 
     execArray = matcher && matcher.rx.exec(sel);
 

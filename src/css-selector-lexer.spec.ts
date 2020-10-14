@@ -252,4 +252,77 @@ describe('tokenization', () => {
       },
     ]);
   });
+
+  test('should work with coma separator', () => {
+    const selector = `section > div h1 + p  ,  span ~ a`;
+
+    expect(tokenize(selector)).toEqual([
+      {
+        type    : CssTokenType.Element,
+        values  : ['section'],
+        position: 0,
+        length  : 7,
+      },
+      {
+        type    : CssTokenType.Combinator,
+        values  : ['>'],
+        position: 7,
+        length  : 3,
+      },
+      {
+        type    : CssTokenType.Element,
+        values  : ['div'],
+        position: 10,
+        length  : 3,
+      },
+      {
+        type    : CssTokenType.Space,
+        values  : [' '],
+        position: 13,
+        length  : 1,
+      },
+      {
+        type    : CssTokenType.Element,
+        values  : ['h1'],
+        position: 14,
+        length  : 2,
+      },
+      {
+        type    : CssTokenType.Combinator,
+        values  : ['+'],
+        position: 16,
+        length  : 3,
+      },
+      {
+        type    : CssTokenType.Element,
+        values  : ['p'],
+        position: 19,
+        length  : 1,
+      },
+      {
+        type    : CssTokenType.Separator,
+        values  : [','],
+        position: 20,
+        length  : 5,
+      },
+      {
+        type    : CssTokenType.Element,
+        values  : ['span'],
+        position: 25,
+        length  : 4,
+      },
+      {
+        type    : CssTokenType.Combinator,
+        values  : ['~'],
+        position: 29,
+        length  : 3,
+      },
+      {
+        type    : CssTokenType.Element,
+        values  : ['a'],
+        position: 32,
+        length  : 1,
+      },
+    ]);
+  });
 });
