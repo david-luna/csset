@@ -41,9 +41,12 @@ const CSS_TOKEN_MATCHERS = [
 
 export class CssSelectorLexer {
 
+  private selector: string;
   private position: number = 0;
 
-  constructor (private selector: string) {}
+  constructor (selector: string) {
+    this.selector = selector.trim();
+  }
 
   nextToken(): CssToken | undefined {
     if (this.selector === '') {
