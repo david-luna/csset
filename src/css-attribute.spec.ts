@@ -63,7 +63,6 @@ describe('composition with intersection operation', () => {
 
     dataset.forEach((data) => {
       const attrs  = data.selectors.map(parseSelector);
-      console.log(attrs)
       const result = intersectionReduce(attrs);
       expect(`${result}`).toEqual(data.expected);
     });
@@ -321,7 +320,7 @@ describe('intersection', () => {
     expect(`${cssAttr1.intersection(cssAttr2)}`).toEqual(`${expected}`);
   });
 
-  test.only('should merge matchers if there is intersection between them', () => {
+  test('should merge matchers if there is intersection between them', () => {
     // TODO: change values
     const cssAttr1 = parseSelector('[attr^=start][attr*=contain][attr$=longend]');
     const cssAttr2 = parseSelector('[attr^=startlong][attr*=xcontainx][attr$=end]');
