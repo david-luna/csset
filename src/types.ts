@@ -6,6 +6,7 @@ export enum CssTokenType {
   Attribute,
   Space,
   Combinator,
+  Separator,
   Unknown,
 }
 export interface CssToken {

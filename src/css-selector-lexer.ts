@@ -2,6 +2,8 @@
 // https://www.w3.org/TR/CSS22/grammar.html
 // use following tool to work with regex
 // https://regex101.com/
+// TODO: use this npm lib
+// npm install parsel-js
 
 import { CssTokenType, CssToken } from "./types";
 
@@ -20,11 +22,15 @@ const CSS_TOKEN_MATCHERS = [
   },
   {
     type: CssTokenType.Attribute,
-    rx:/^\[(-?[_a-z][_a-z0-9-]*)(?:([\^\$\*\|~]?=)?([_a-z0-9]+|"[^"]*"|'[^']*'))?\]/i
+    rx:/^\[(-?[_a-z][_a-z0-9-]*)(?:([\^\$\*\|~]?=)?([_a-z0-9\u0080-\uFFFF]+|"[^"]*"|'[^']*'))?\]/i
   },
   {
     type: CssTokenType.Combinator,
     rx:/^(?:\s*)([~>\+])(?:\s*)/
+  },
+  {
+    type: CssTokenType.Separator,
+    rx:/^(?:\s*)(,)(?:\s*)/
   },
   {
     type: CssTokenType.Space,
@@ -35,9 +41,12 @@ const CSS_TOKEN_MATCHERS = [
 
 export class CssSelectorLexer {
 
+  private selector: string;
   private position: number = 0;
 
-  constructor (private selector: string) {}
+  constructor (selector: string) {
+    this.selector = selector.trim();
+  }
 
   nextToken(): CssToken | undefined {
     if (this.selector === '') {
@@ -48,7 +57,6 @@ export class CssSelectorLexer {
     const pos     = this.position;
     const matcher = CSS_TOKEN_MATCHERS.find((t) => t.rx.test(sel));
     let execArray: RegExpExecArray | null | undefined;
-    let token    : CssToken;
 
     execArray = matcher && matcher.rx.exec(sel);
 
@@ -59,7 +67,7 @@ export class CssSelectorLexer {
 
       return {
         type    : matcher.type,
-        values  : partials.filter(v => !!v),
+        values  : this.sanitizeValues(partials),
         position: pos,
         length  : full.length
       };
@@ -74,5 +82,13 @@ export class CssSelectorLexer {
       position: pos,
       length  : sel.length,
     }
-  } 
+  }
+
+  private sanitizeValues(values: string[]): string[] {
+    return values.filter(value => !!value).map(value => {
+      const isQuotedString = /^('|")[^'"]+\1$/.test(value);
+      
+      return isQuotedString ? value.slice(1, -1) : value;
+    });
+  }
 }

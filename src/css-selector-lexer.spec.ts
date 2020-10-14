@@ -1,5 +1,5 @@
-import { CssSelectorLexer } from "../src/css-selector-lexer";
-import { CssToken, CssTokenType } from "../src/types";
+import { CssSelectorLexer } from "./css-selector-lexer";
+import { CssToken, CssTokenType } from "./types";
 
 
 const tokenize = (selector: string): CssToken[] => {
@@ -88,7 +88,7 @@ describe('tokenization', () => {
     expect(tokenize('[attr="value"]')).toEqual([
       {
         type    : CssTokenType.Attribute,
-        values  : ['attr', '=', '"value"'],
+        values  : ['attr', '=', 'value'],
         position: 0,
         length  : 14,
       }
@@ -97,7 +97,7 @@ describe('tokenization', () => {
     expect(tokenize('[attr=\'value\']')).toEqual([
       {
         type    : CssTokenType.Attribute,
-        values  : ['attr', '=', '\'value\''],
+        values  : ['attr', '=', 'value'],
         position: 0,
         length  : 14,
       }
@@ -161,7 +161,7 @@ describe('tokenization', () => {
       },
       {
         type    : CssTokenType.Attribute,
-        values  : ['attr1', '=', '\'v1\''],
+        values  : ['attr1', '=', 'v1'],
         position: 31,
         length  : 12,
       },
@@ -173,7 +173,7 @@ describe('tokenization', () => {
       },
       {
         type    : CssTokenType.Attribute,
-        values  : ['attr2', '=', '"v2"'],
+        values  : ['attr2', '=', 'v2'],
         position: 55,
         length  : 12,
       },
@@ -229,6 +229,79 @@ describe('tokenization', () => {
       {
         type    : CssTokenType.Combinator,
         values  : ['>'],
+        position: 20,
+        length  : 5,
+      },
+      {
+        type    : CssTokenType.Element,
+        values  : ['span'],
+        position: 25,
+        length  : 4,
+      },
+      {
+        type    : CssTokenType.Combinator,
+        values  : ['~'],
+        position: 29,
+        length  : 3,
+      },
+      {
+        type    : CssTokenType.Element,
+        values  : ['a'],
+        position: 32,
+        length  : 1,
+      },
+    ]);
+  });
+
+  test('should work with coma separator', () => {
+    const selector = `section > div h1 + p  ,  span ~ a`;
+
+    expect(tokenize(selector)).toEqual([
+      {
+        type    : CssTokenType.Element,
+        values  : ['section'],
+        position: 0,
+        length  : 7,
+      },
+      {
+        type    : CssTokenType.Combinator,
+        values  : ['>'],
+        position: 7,
+        length  : 3,
+      },
+      {
+        type    : CssTokenType.Element,
+        values  : ['div'],
+        position: 10,
+        length  : 3,
+      },
+      {
+        type    : CssTokenType.Space,
+        values  : [' '],
+        position: 13,
+        length  : 1,
+      },
+      {
+        type    : CssTokenType.Element,
+        values  : ['h1'],
+        position: 14,
+        length  : 2,
+      },
+      {
+        type    : CssTokenType.Combinator,
+        values  : ['+'],
+        position: 16,
+        length  : 3,
+      },
+      {
+        type    : CssTokenType.Element,
+        values  : ['p'],
+        position: 19,
+        length  : 1,
+      },
+      {
+        type    : CssTokenType.Separator,
+        values  : [','],
         position: 20,
         length  : 5,
       },

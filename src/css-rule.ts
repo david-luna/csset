@@ -8,7 +8,7 @@ export class CssRule {
 
   set id(id: string) {
     if (this._id) {
-      throw SyntaxError(`Identifier already se to ${this.id}.`)
+      throw SyntaxError(`Identifier already set to ${this.id}.`)
     }
     this._id = id;
   }
@@ -27,13 +27,11 @@ export class CssRule {
     return this._element;
   }
 
-
-  addAttribute(attribute: string) {
-    const nextAttribute = new CssAttribute(attribute);
-    const prevAttribute = this.attribs.get(nextAttribute.name)
+  addAttribute(attribute: CssAttribute) {
+    const prevAttribute = this.attribs.get(attribute.name)
 
     if (prevAttribute) {
-      const mergedAttribute = prevAttribute.intersection(nextAttribute);
+      const mergedAttribute = prevAttribute.intersection(attribute);
 
       if (mergedAttribute === void 0) {
         throw new TypeError(`The selector defines an empty set.`);
@@ -41,7 +39,64 @@ export class CssRule {
         this.attribs.set(prevAttribute.name, mergedAttribute);
       }
     } else {
-      this.attribs.set(nextAttribute.name, nextAttribute);
+      this.attribs.set(attribute.name, attribute);
     }
+  }
+
+  addClass ( className: string ) {
+    this.classes.add(className);
+  }
+
+  equals ( rule: CssRule ): boolean {
+    return `${this}` === `${rule}`;
+  }
+
+  supersetOf ( rule: CssRule ): boolean {
+    // Element
+    if (this.element !== '*' && this.element !== rule.element) {
+      return false;
+    }
+
+    // ID
+    if (this.id && this.id !== rule.id) {
+      return false;
+    }
+
+    // classes
+    for (let c of this.classes) {
+      if (!rule.classes.has(c)) {
+        return false;
+      }
+    }
+
+    // Attributes
+    // More attribs mean more specific so it cannot be superset
+    if (this.attribs.size > rule.attribs.size) {
+      return false
+    }
+    // Check attributes
+    for (let attr of this.attribs.values()) {
+      const ruleAttr = rule.attribs.get(attr.name);
+
+      // attrib should be defined in both and include 
+      if (ruleAttr && !attr.supersetOf(ruleAttr)) {
+        return false;
+      } else if (!ruleAttr) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  toString(): string {
+    const classes = Array.from(this.classes).sort();
+    const attribs = Array.from(this.attribs.keys()).sort().map(n => this.attribs.get(n)) as CssAttribute[];
+
+    const strClasses = classes.map(n => `.${n}`);
+    const strAttribs = attribs.map(a => `${a}`);
+    const strId = this.id ? `#${this.id}` : '';
+
+    return `${this.element}${strId}${strClasses.join('')}${strAttribs.join('')}`;
   }
 }
