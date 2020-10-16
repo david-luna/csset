@@ -14,7 +14,7 @@ const tokenize = (selector: string): CssToken[] => {
   return tokens;
 };
 
-describe('tokenization', () => {
+describe('CssSelectorLexer', () => {
   test('should work for element selectors', () => {
     expect(tokenize('div')).toEqual([
       {
