@@ -262,7 +262,7 @@ describe('CssRule', () => {
   });
 
   describe('union', () => {
-    test('should bre the same if equal', () => {
+    test('should return the same if equal', () => {
       const cssrule1 = parseSelector('div#id.class1.class2');
       const cssrule2 = parseSelector('div#id.class1.class2');
   
@@ -282,6 +282,58 @@ describe('CssRule', () => {
       const cssrule2 = parseSelector('div#id.class1.class2');
   
       expect(cssrule1.union(cssrule2)).toEqual([cssrule1, cssrule2]);
+    });
+  });
+
+  describe('intersection', () => {
+    test('should return the same if equal', () => {
+      const cssrule1 = parseSelector('div#id.class1.class2');
+      const cssrule2 = parseSelector('div#id.class1.class2');
+  
+      expect(cssrule1.intersection(cssrule2)).toEqual(cssrule1);
+    });
+  
+    test('should return one rule if it is subset of the other and void otherwise', () => {
+      const cssrule1 = parseSelector('div.class1.class2');
+      const cssrule2 = parseSelector('div#id.class1.class2');
+  
+      expect(cssrule1.intersection(cssrule2)).toEqual(cssrule2);
+      expect(cssrule2.intersection(cssrule1)).toEqual(cssrule2);
+    });
+  
+    test('should return void if they have different id', () => {
+      const cssrule1 = parseSelector('div#id2.class1.class2');
+      const cssrule2 = parseSelector('div#id.class1.class2');
+  
+      expect(cssrule1.intersection(cssrule2)).toEqual(void 0);
+    });
+
+    test('should return void if they have different element', () => {
+      const cssrule1 = parseSelector('div#id.class1.class2');
+      const cssrule2 = parseSelector('nav#id.class1.class2');
+  
+      expect(cssrule1.intersection(cssrule2)).toEqual(void 0);
+    });
+
+    test('should return a rule intersecting attributes', () => {
+      const cssrule1 = parseSelector('div#id.class1.class2[attr^="value"]');
+      const cssrule2 = parseSelector('div#id.class1.class2[attr="value"]');
+  
+      expect(cssrule1.intersection(cssrule2)).toEqual(cssrule2);
+    });
+
+    test('should return a rule intersecting classes', () => {
+      const cssrule1 = parseSelector('div#id.class1.class2');
+      const cssrule2 = parseSelector('div#id.class1.class2.class3');
+  
+      expect(cssrule1.intersection(cssrule2)).toEqual(cssrule2);
+    });
+
+    test('should void if an attribute intersection is empty set', () => {
+      const cssrule1 = parseSelector('div#id.class1.class2[attr="value"]');
+      const cssrule2 = parseSelector('div#id.class1.class2[attr="different"]');
+  
+      expect(cssrule1.intersection(cssrule2)).toEqual(void 0);
     });
   });
 

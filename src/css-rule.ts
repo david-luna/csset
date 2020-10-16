@@ -24,7 +24,7 @@ export class CssRule {
     this._element = element;
   }
   get element(): string {
-    return this._element;
+    return this._element || '*';
   }
 
   addAttribute(attribute: CssAttribute) {
@@ -98,6 +98,34 @@ export class CssRule {
                   rule.supersetOf(this) ? [rule] : [this, rule];
 
     return union;
+  }
+
+  intersection( rule: CssRule ): CssRule | void {
+    if (this.id && rule.id && this.id !== rule.id) {
+      return void 0;
+    }
+    if (this.element !== rule.element && this.element !== '*' && rule.element !== '*') {
+      return void 0;
+    }
+    const intersection = new CssRule();
+
+    intersection.id = this.id || rule.id;
+    
+    if (this.element !== '*') {
+      intersection.element = this.element;
+    }
+
+    this.classes.forEach(cls => intersection.addClass(cls));
+    rule.classes.forEach(cls => intersection.addClass(cls));
+
+    try {
+      this.attribs.forEach(attr => intersection.addAttribute(attr));
+      rule.attribs.forEach(attr => intersection.addAttribute(attr));
+    } catch (error) {
+      return void 0;
+    }
+
+    return intersection;
   }
 
   toString(): string {
