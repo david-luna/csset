@@ -89,7 +89,7 @@ describe('CssRule', () => {
     });
   });
   
-  describe('contains', () => {
+  describe('supersetOf', () => {
     test('should contain if equal', () => {
       const cssrule1 = parseSelector('div#id.class1.class2');
       const cssrule2 = parseSelector('div#id.class1.class2');
@@ -259,6 +259,30 @@ describe('CssRule', () => {
         expect(string).toEqual(expected);
       });
     })
+  });
+
+  describe('union', () => {
+    test('should bre the same if equal', () => {
+      const cssrule1 = parseSelector('div#id.class1.class2');
+      const cssrule2 = parseSelector('div#id.class1.class2');
+  
+      expect(cssrule1.union(cssrule2)).toEqual([cssrule1]);
+    });
+  
+    test('should return one rule if it is superset of the other', () => {
+      const cssrule1 = parseSelector('div.class1.class2');
+      const cssrule2 = parseSelector('div#id.class1.class2');
+  
+      expect(cssrule1.union(cssrule2)).toEqual([cssrule1]);
+      expect(cssrule2.union(cssrule1)).toEqual([cssrule1]);
+    });
+  
+    test('should return both rules if no one is superset of the other', () => {
+      const cssrule1 = parseSelector('div#id2.class1.class2');
+      const cssrule2 = parseSelector('div#id.class1.class2');
+  
+      expect(cssrule1.union(cssrule2)).toEqual([cssrule1, cssrule2]);
+    });
   });
 
 });

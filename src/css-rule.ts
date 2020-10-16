@@ -89,6 +89,17 @@ export class CssRule {
     return true;
   }
 
+  subsetOf ( rule: CssRule ): boolean {
+    return rule.supersetOf(this);
+  }
+
+  union( rule: CssRule ): CssRule[] {
+    const union = this.supersetOf(rule) ? [this] :
+                  rule.supersetOf(this) ? [rule] : [this, rule];
+
+    return union;
+  }
+
   toString(): string {
     const classes = Array.from(this.classes).sort();
     const attribs = Array.from(this.attribs.keys()).sort().map(n => this.attribs.get(n)) as CssAttribute[];
