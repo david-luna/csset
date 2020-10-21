@@ -14,8 +14,8 @@ enum CssCombinatorValues {
 
 export class Csset {
   // These properties are exclusive if one is set the other is undefined
-  rules: Array<{ rule: CssRule, combinator: CssCombinatorValues }>;
-  subsets: Csset[];
+  rules: Array<{ rule: CssRule, combinator: CssCombinatorValues }> = [];
+  subsets: Csset[] = [];
 
   /**
    * Parses the given selector filing up its private properties with metadata
@@ -35,6 +35,46 @@ export class Csset {
    * @param set the set to check with
    */
   supersetOf(set: Csset): boolean {
+    // Case 1: both do not contain subsets (list of rules with values)
+    if (this.rules.length && set.rules.length) {
+      // more specific selector cannot be superset of one less specific
+      if (this.rules.length > set.rules.length) {
+        return false;
+      }
+
+      // iterate backwards to check
+      let indexOne = this.rules.length - 1;
+      let indexTwo = set.rules.length - 1;
+
+      while(indexOne >= 0) {
+        let ruleOne = this.rules[indexOne];
+        let ruleTwo = set.rules[indexTwo];
+        
+        if (!ruleOne.rule.supersetOf(ruleTwo.rule)) {
+          return false;
+        }
+        if (ruleOne.combinator !== ruleTwo.combinator) {
+
+        }
+
+        // everithing okay so decrease indexes
+        indexOne--;
+        indexTwo--;
+      }
+      return true;
+    }
+    // Case 2: both do contain subsets
+    // Case 3: this does not & received Csset does
+    // Case 3: this does & received Csset does not
+    if (this.subsets.length && set.rules.length) {
+      let index = this.subsets.length;
+
+      while(index--) {
+        if (this.subsets[index].supersetOf(set)) {
+          return true;
+        }
+      }
+    }
     return false;
   }
 
@@ -44,6 +84,14 @@ export class Csset {
    */
   subsetOf(set: Csset): boolean {
     return set.subsetOf(this);
+  }
+
+  toString(): string {
+    if (this.rules.length) {
+      return this.rules.reduce((acc, rule) => `${acc} ${rule.combinator} ${rule.rule}`, '');
+    }
+
+    return this.subsets.reduce((acc, set) => `${acc} ${set}`, '');
   }
 
 
