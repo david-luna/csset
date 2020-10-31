@@ -17,7 +17,7 @@ npm install --save csset
 
 ## Requirements
 
-- TBD
+Works in all modern browsers :)
 
 ## Usage
 
@@ -33,14 +33,20 @@ const set2 = new Csset('div');
 const set3 = new Csset('p');
 
 // Make set operations
-console.assert(set1.subset(set2));
-console.assert(set1.subset(set3));
-console.assert(set2.superset(set1));
-console.assert(set3.superset(set1));
-// More to come (union, intersection, diff?)
+console.assert(set1.supersetOf(set2));
+console.assert(set1.subsetOf(set3));
+console.assert(set2.supersetOf(set1));
+console.assert(set3.supersetOf(set1));
 
 ```
 
 ## Known issues & limitations
 
-- TBD
+- As for now pseudo selectors are not supported
+
+
+## Roadmap
+
+- Add better support for complex CSS selectors using parsel package
+- Add `union` and `intersection` methods
+- consider other set operations (diff, complementary, ...)

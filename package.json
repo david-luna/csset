@@ -1,9 +1,9 @@
 {
   "name": "csset",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "experiment to perform algebra of sets with css",
-  "main": "./lib/csset.js",
-  "types": "./lib/csset.d.ts",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "files": [
     "lib"
   ],
@@ -34,7 +34,7 @@
   "homepage": "https://github.com/david-luna/csset#readme",
   "devDependencies": {
     "@types/jest": "^24.0.23",
-    "coveralls": "^3.0.8",
+    "coveralls": "^3.0.11",
     "jest": "^24.9.0",
     "ts-jest": "^24.1.0",
     "typescript": "^3.7.2"
