@@ -1,20 +1,19 @@
 import { CssRule } from "./css-rule";
 import { CssSelectorLexer } from "./css-selector-lexer";
-import { CssTokenType, CssToken } from "./types";
 import { CssAttribute } from "./css-attribute";
+import { CssTokenType, CombinatorValues } from "./types";
 
-enum CssCombinatorValues {
-  ADJACENT   = '+',
-  SIBLING    = '~',
-  DESCENDANT = ' ',
-  CHILD      = '>',
-  NONE       = '',
+
+const HierarchyCombinators = [CombinatorValues.DESCENDANT, CombinatorValues.CHILD];
+const SiblingCombinators = [CombinatorValues.SIBLING, CombinatorValues.ADJACENT];
+
+interface CombinedRule {
+  rule: CssRule;
+  comb: CombinatorValues;
 }
 
-const HierarchyCombinators = [CssCombinatorValues.DESCENDANT, CssCombinatorValues.CHILD];
-const SiblingCombinators = [CssCombinatorValues.SIBLING, CssCombinatorValues.ADJACENT];
+type CssRuleList = Array<CombinedRule>;
 
-type CssRuleList = Array<{ rule: CssRule, combinator: CssCombinatorValues }>;
 
 export class Csset {
   // These properties are exclusive if one is set the other is undefined
@@ -78,7 +77,7 @@ export class Csset {
 
   toString(): string {
     if (this.rules.length) {
-      return this.rules.reduce((acc, rule) => `${acc} ${rule.combinator} ${rule.rule}`, '');
+      return this.rules.reduce((acc, rule) => `${acc} ${rule.comb} ${rule.rule}`, '');
     }
 
     return this.subsets.reduce((acc, set) => `${acc} ${set}`, '');
@@ -94,7 +93,7 @@ export class Csset {
     let rule = new CssRule();
     let token;
 
-    this.rules = [{ rule, combinator: CssCombinatorValues.NONE }];
+    this.rules = [{ rule, comb: CombinatorValues.NONE }];
     while(token = lexer.nextToken()) {
       switch(token.type) {
         case CssTokenType.Element:
@@ -112,7 +111,7 @@ export class Csset {
         case CssTokenType.Combinator:
         case CssTokenType.Space:
           rule = new CssRule();
-          this.rules.push({ rule, combinator: token.values[0] as CssCombinatorValues })
+          this.rules.push({ rule, comb: token.values[0] as CombinatorValues })
           break;
         default:
           throw new SyntaxError(`Unknown token ${token.values[0]} at position ${token.position}`);
@@ -147,8 +146,8 @@ export class Csset {
     // The container selector has sibling combinator and not the content selector
     // meaning container is more specific
     if (
-      SiblingCombinators.indexOf(containerRule.combinator) !== -1 &&
-      HierarchyCombinators.indexOf(contentRule.combinator) !== -1
+      SiblingCombinators.indexOf(containerRule.comb) !== -1 &&
+      HierarchyCombinators.indexOf(contentRule.comb) !== -1
     ) {
       return false;
     }
@@ -160,14 +159,14 @@ export class Csset {
 
     // Check if container combinator is more specific that content
     if (
-      containerRule.combinator === CssCombinatorValues.CHILD &&
-      contentRule.combinator   === CssCombinatorValues.DESCENDANT
+      containerRule.comb === CombinatorValues.CHILD &&
+      contentRule.comb   === CombinatorValues.DESCENDANT
     ){
       return false;
     }
     if (
-      containerRule.combinator === CssCombinatorValues.ADJACENT &&
-      contentRule.combinator   === CssCombinatorValues.SIBLING
+      containerRule.comb === CombinatorValues.ADJACENT &&
+      contentRule.comb   === CombinatorValues.SIBLING
     ){
       return false;
     }
@@ -193,8 +192,8 @@ export class Csset {
     }
   }
 
-  private getCombinator (list: CssRuleList): CssCombinatorValues {
-    return list[list.length - 1].combinator;
+  private getCombinator (list: CssRuleList): CombinatorValues {
+    return list[list.length - 1].comb;
   }
 
 }
