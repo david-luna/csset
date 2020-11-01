@@ -4,8 +4,13 @@ import { CssAttribute } from "./css-attribute";
 import { CssTokenType, CombinatorValues } from "./types";
 
 
-const HierarchyCombinators = [CombinatorValues.DESCENDANT, CombinatorValues.CHILD];
-const SiblingCombinators = [CombinatorValues.SIBLING, CombinatorValues.ADJACENT];
+const hasSibling = (combinedRule: CombinedRule): boolean => {
+  return [CombinatorValues.SIBLING, CombinatorValues.ADJACENT].indexOf(combinedRule.comb) !== -1;
+};
+
+const hasAncestor = (combinedRule: CombinedRule): boolean => {
+  return [CombinatorValues.DESCENDANT, CombinatorValues.CHILD].indexOf(combinedRule.comb) !== -1;
+};
 
 interface CombinedRule {
   rule: CssRule;
@@ -145,10 +150,7 @@ export class Csset {
 
     // The container selector has sibling combinator and not the content selector
     // meaning container is more specific
-    if (
-      SiblingCombinators.indexOf(containerRule.comb) !== -1 &&
-      HierarchyCombinators.indexOf(contentRule.comb) !== -1
-    ) {
+    if (hasSibling(containerRule) && hasAncestor(contentRule)) {
       return false;
     }
 
@@ -176,24 +178,19 @@ export class Csset {
 
 
   private alignLists(listOne: CssRuleList, listTwo: CssRuleList) {
-    const oneHasHierarchy = HierarchyCombinators.indexOf(this.getCombinator(listOne)) !== -1;
-    const twoHasHierarchy = HierarchyCombinators.indexOf(this.getCombinator(listTwo)) !== -1;
-    const needAlignment   = oneHasHierarchy !== twoHasHierarchy;
+    const oneHasAncestor = hasAncestor(listOne[listOne.length - 1]);
+    const twoHasAncestor = hasAncestor(listTwo[listTwo.length - 1]);
+    const needAlignment   = oneHasAncestor !== twoHasAncestor;
 
     if (needAlignment) {
-      const selectedList = oneHasHierarchy ? listTwo : listOne;
+      const selectedList = oneHasAncestor ? listTwo : listOne;      
 
       while (
-        SiblingCombinators.indexOf(this.getCombinator(selectedList)) !== -1 &&
+        hasSibling(selectedList[selectedList.length - 1]) &&
         selectedList.length !== 1
       ) {
         selectedList.pop();
       }
     }
   }
-
-  private getCombinator (list: CssRuleList): CombinatorValues {
-    return list[list.length - 1].comb;
-  }
-
 }
