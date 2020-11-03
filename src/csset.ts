@@ -3,18 +3,9 @@ import { CssSelectorLexer } from "./css-selector-lexer";
 import { CssAttribute } from "./css-attribute";
 import { CssTokenType, CombinatorValues } from "./types";
 
-
-const hasSibling = (combinedRule: CombinedRule): boolean => {
-  return [CombinatorValues.SIBLING, CombinatorValues.ADJACENT].indexOf(combinedRule.comb) !== -1;
-};
-
-const hasAncestor = (combinedRule: CombinedRule): boolean => {
+const isAncestor = (combinedRule: CombinedRule): boolean => {
   return [CombinatorValues.DESCENDANT, CombinatorValues.CHILD].indexOf(combinedRule.comb) !== -1;
 };
-
-const isAncestor = hasAncestor;
-const isSibling  = hasSibling;
-
 
 interface CombinedRule {
   rule: CssRule;
