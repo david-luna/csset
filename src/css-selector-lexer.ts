@@ -4,7 +4,6 @@
 // https://regex101.com/
 // TODO: use this npm lib
 // npm install parsel-js
-
 import { CssTokenType, CssToken } from "./types";
 
 const CSS_TOKEN_MATCHERS = [

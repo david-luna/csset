@@ -348,5 +348,36 @@ describe('Csset', () => {
         })
       });
     });
+
+    describe('with subsets in both selectors', () => {
+      test('should be superset if it is for all subsets in 2nd selector', () => {
+        const data = [
+          {
+            sel1: '#id, span, .class1',
+            sel2: 'span, a.class1, div#id',
+            expected: true,
+          },
+          {
+            sel1: '*, div',
+            sel2: 'section, span > a ~ p, article, nav.hidden',
+            expected: true,
+          },
+          {
+            sel1: 'div, p#id',
+            sel2: 'div, p, span',
+            expected: false,
+          }
+        ];
+
+        data.forEach( d => {
+          const set1 = new Csset(d.sel1);
+          const set2 = new Csset(d.sel2);
+          const result = `${set1} ${operationSymbols.supersetOf} ${set2} => ${set1.supersetOf(set2)}`;
+          const expected = `${set1} ${operationSymbols.supersetOf} ${set2} => ${d.expected}`;
+  
+          expect(result).toEqual(expected);
+        })
+      });
+    });
   });
 });
