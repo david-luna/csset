@@ -406,12 +406,12 @@ describe('Csset', () => {
       });
     });
 
-    test('should remove rules that are subse of others', () => {
+    test('should remove rules that are subset of others', () => {
       const data = [
         {
           sel1: 'div, p, aside, section.class',
           sel2: 'div, p#id, span, a, section',
-          expected: 'div,p,aside,section,span,a',
+          expected: 'div,p,aside,span,a,section',
         },
       ];
 

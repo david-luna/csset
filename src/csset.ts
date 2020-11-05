@@ -106,13 +106,16 @@ export class Csset {
     }
 
     // Make union in subsets if possible
-    const outliersOne = this.subsets.filter(s => !s.subsetOf(set));
-    const outliersTwo = set.subsets.filter(s => !s.subsetOf(this));
-    const oneSelector = outliersOne.map(s => `${s}`).join(',');
-    const twoSelector = outliersTwo.map(s => `${s}`).join(',');
+    const equalSets = this.subsets.filter(thisSet => set.subsets.some(otherSet => `${thisSet}` === `${otherSet}`));
+    const uniqueOne = this.subsets.filter(s => !s.subsetOf(set));
+    const uniqueTwo = set.subsets.filter(s => !s.subsetOf(this));
+    
+    const equSelector = equalSets.map(s => `${s}`).join(',');
+    const oneSelector = uniqueOne.map(s => `${s}`).join(',');
+    const twoSelector = uniqueTwo.map(s => `${s}`).join(',');
 
 
-    return new Csset(`${oneSelector},${twoSelector}`);
+    return new Csset(`${equSelector},${oneSelector},${twoSelector}`);
   }
 
   toString(): string {
