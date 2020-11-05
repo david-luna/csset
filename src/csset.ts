@@ -86,7 +86,33 @@ export class Csset {
    * @param set the set to check with
    */
   subsetOf(set: Csset): boolean {
-    return set.subsetOf(this);
+    return set.supersetOf(this);
+  }
+
+  union(set: Csset): Csset {
+    if (this.supersetOf(set)) {
+      return this;
+    }
+
+    if (this.subsetOf(set)) {
+      return set;
+    }
+
+    // return new Csset('unknown');
+
+    // If one of the sets does not have subsets just return a set with all
+    if (this.layers || set.layers) {
+      return new Csset(`${this},${set}`);
+    }
+
+    // Make union in subsets if possible
+    const outliersOne = this.subsets.filter(s => !s.subsetOf(set));
+    const outliersTwo = set.subsets.filter(s => !s.subsetOf(this));
+    const oneSelector = outliersOne.map(s => `${s}`).join(',');
+    const twoSelector = outliersTwo.map(s => `${s}`).join(',');
+
+
+    return new Csset(`${oneSelector},${twoSelector}`);
   }
 
   toString(): string {
