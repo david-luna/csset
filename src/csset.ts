@@ -86,7 +86,36 @@ export class Csset {
    * @param set the set to check with
    */
   subsetOf(set: Csset): boolean {
-    return set.subsetOf(this);
+    return set.supersetOf(this);
+  }
+
+  union(set: Csset): Csset {
+    if (this.supersetOf(set)) {
+      return this;
+    }
+
+    if (this.subsetOf(set)) {
+      return set;
+    }
+
+    // return new Csset('unknown');
+
+    // If one of the sets does not have subsets just return a set with all
+    if (this.layers || set.layers) {
+      return new Csset(`${this},${set}`);
+    }
+
+    // Make union in subsets if possible
+    const equalSets = this.subsets.filter(thisSet => set.subsets.some(otherSet => `${thisSet}` === `${otherSet}`));
+    const uniqueOne = this.subsets.filter(s => !s.subsetOf(set));
+    const uniqueTwo = set.subsets.filter(s => !s.subsetOf(this));
+    
+    const equSelector = equalSets.map(s => `${s}`).join(',');
+    const oneSelector = uniqueOne.map(s => `${s}`).join(',');
+    const twoSelector = uniqueTwo.map(s => `${s}`).join(',');
+
+
+    return new Csset(`${equSelector},${oneSelector},${twoSelector}`);
   }
 
   toString(): string {

@@ -380,4 +380,49 @@ describe('Csset', () => {
       });
     });
   });
+
+  describe('union', () => {
+    test('should return one set if is superset of the other', () => {
+      const data = [
+        {
+          sel1: 'div, p, aside, section',
+          sel2: 'div, p, section.class',
+          expected: 'div,p,aside,section',
+        },
+        {
+          sel1: 'div, p, section.class',
+          sel2: 'div, p, aside, section',
+          expected: 'div,p,aside,section',
+        },
+      ];
+
+      data.forEach( d => {
+        const set1 = new Csset(d.sel1);
+        const set2 = new Csset(d.sel2);
+        const result = `${set1} ${operationSymbols.union} ${set2} => ${set1.union(set2)}`;
+        const expected = `${set1} ${operationSymbols.union} ${set2} => ${d.expected}`;
+
+        expect(result).toEqual(expected);
+      });
+    });
+
+    test('should remove rules that are subset of others', () => {
+      const data = [
+        {
+          sel1: 'div, p, aside, section.class',
+          sel2: 'div, p#id, span, a, section',
+          expected: 'div,p,aside,span,a,section',
+        },
+      ];
+
+      data.forEach( d => {
+        const set1 = new Csset(d.sel1);
+        const set2 = new Csset(d.sel2);
+        const result = `${set1} ${operationSymbols.union} ${set2} => ${set1.union(set2)}`;
+        const expected = `${set1} ${operationSymbols.union} ${set2} => ${d.expected}`;
+
+        expect(result).toEqual(expected);
+      });
+    });
+  });
 });
