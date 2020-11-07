@@ -1,6 +1,41 @@
 import { Csset } from './csset';
 import { operationSymbols } from '../test/utils';
 
+interface TestItem {
+  sel1: string;
+  sel2: string
+  expected: string | boolean;
+}
+
+const runExpectations = (testSet: TestItem[], operation: string) => {
+  let method: 'supersetOf' | 'subsetOf' | 'union'; // | 'intersection';
+  
+  switch(operation) {
+    case operationSymbols.supersetOf:
+      method = 'supersetOf';
+      break;
+    case operationSymbols.subsetOf:
+      method = 'subsetOf';
+      break;
+    case operationSymbols.union:
+      method = 'union';
+      break;
+    // case operationSymbols.intersection:
+    //   method = 'intersection';
+    //   break;
+  }
+
+  testSet.forEach( item => {
+    const set1 = new Csset(item.sel1);
+    const set2 = new Csset(item.sel2);
+    const result = `${set1} ${operation} ${set2} => ${set1[method](set2)}`;
+    const expected = `${set1} ${operation} ${set2} => ${item.expected}`;
+
+    expect(result).toEqual(expected);
+  });
+}
+
+
 describe('Csset', () => {
 
   describe('constructor', () => {
@@ -44,14 +79,7 @@ describe('Csset', () => {
           }
         ];
 
-        data.forEach( d => {
-          const set1 = new Csset(d.sel1);
-          const set2 = new Csset(d.sel2);
-          const result = `${set1} ${operationSymbols.supersetOf} ${set2} => ${set1.supersetOf(set2)}`;
-          const expected = `${set1} ${operationSymbols.supersetOf} ${set2} => ${d.expected}`;
-  
-          expect(result).toEqual(expected);
-        })
+        runExpectations(data, operationSymbols.supersetOf);
       });
 
       test('should compare properly when the rule is less specific', () => {
@@ -73,14 +101,7 @@ describe('Csset', () => {
           }
         ];
 
-        data.forEach( d => {
-          const set1 = new Csset(d.sel1);
-          const set2 = new Csset(d.sel2);
-          const result = `${set1} ${operationSymbols.supersetOf} ${set2} => ${set1.supersetOf(set2)}`;
-          const expected = `${set1} ${operationSymbols.supersetOf} ${set2} => ${d.expected}`;
-  
-          expect(result).toEqual(expected);
-        })
+        runExpectations(data, operationSymbols.supersetOf);
       });
   
       test('should compare properly for rules with the same combinators', () => {
@@ -99,14 +120,7 @@ describe('Csset', () => {
         ];
         
       
-        data.forEach( d => {
-          const set1 = new Csset(d.sel1);
-          const set2 = new Csset(d.sel2);
-          const result = `${set1} ${operationSymbols.supersetOf} ${set2} => ${set1.supersetOf(set2)}`;
-          const expected = `${set1} ${operationSymbols.supersetOf} ${set2} => ${d.expected}`;
-  
-          expect(result).toEqual(expected);
-        })
+        runExpectations(data, operationSymbols.supersetOf);
       });
 
       test('should compare properly for rules with different combinators', () => {
@@ -144,14 +158,7 @@ describe('Csset', () => {
         ];
         
       
-        data.forEach( d => {
-          const set1 = new Csset(d.sel1);
-          const set2 = new Csset(d.sel2);
-          const result = `${set1} ${operationSymbols.supersetOf} ${set2} => ${set1.supersetOf(set2)}`;
-          const expected = `${set1} ${operationSymbols.supersetOf} ${set2} => ${d.expected}`;
-  
-          expect(result).toEqual(expected);
-        })
+        runExpectations(data, operationSymbols.supersetOf);
       });
 
       test('should compare properly with different hierarchy combinators', () => {
@@ -189,14 +196,7 @@ describe('Csset', () => {
         ];
         
       
-        data.forEach( d => {
-          const set1 = new Csset(d.sel1);
-          const set2 = new Csset(d.sel2);
-          const result = `${set1} ${operationSymbols.supersetOf} ${set2} => ${set1.supersetOf(set2)}`;
-          const expected = `${set1} ${operationSymbols.supersetOf} ${set2} => ${d.expected}`;
-  
-          expect(result).toEqual(expected);
-        })
+        runExpectations(data, operationSymbols.supersetOf);
       });
 
       test('should compare properly with different sibling combinators', () => {
@@ -234,14 +234,7 @@ describe('Csset', () => {
         ];
         
       
-        data.forEach( d => {
-          const set1 = new Csset(d.sel1);
-          const set2 = new Csset(d.sel2);
-          const result = `${set1} ${operationSymbols.supersetOf} ${set2} => ${set1.supersetOf(set2)}`;
-          const expected = `${set1} ${operationSymbols.supersetOf} ${set2} => ${d.expected}`;
-  
-          expect(result).toEqual(expected);
-        })
+        runExpectations(data, operationSymbols.supersetOf);
       });
 
       test('should compare properly with edge cases combinators', () => {
@@ -276,14 +269,7 @@ describe('Csset', () => {
         ];
         
       
-        data.forEach( d => {
-          const set1 = new Csset(d.sel1);
-          const set2 = new Csset(d.sel2);
-          const result = `${set1} ${operationSymbols.supersetOf} ${set2} => ${set1.supersetOf(set2)}`;
-          const expected = `${set1} ${operationSymbols.supersetOf} ${set2} => ${d.expected}`;
-  
-          expect(result).toEqual(expected);
-        })
+        runExpectations(data, operationSymbols.supersetOf);
       });
     });
 
@@ -307,14 +293,7 @@ describe('Csset', () => {
           }
         ];
 
-        data.forEach( d => {
-          const set1 = new Csset(d.sel1);
-          const set2 = new Csset(d.sel2);
-          const result = `${set1} ${operationSymbols.supersetOf} ${set2} => ${set1.supersetOf(set2)}`;
-          const expected = `${set1} ${operationSymbols.supersetOf} ${set2} => ${d.expected}`;
-  
-          expect(result).toEqual(expected);
-        })
+        runExpectations(data, operationSymbols.supersetOf);
       });
     });
 
@@ -338,14 +317,7 @@ describe('Csset', () => {
           }
         ];
 
-        data.forEach( d => {
-          const set1 = new Csset(d.sel1);
-          const set2 = new Csset(d.sel2);
-          const result = `${set1} ${operationSymbols.supersetOf} ${set2} => ${set1.supersetOf(set2)}`;
-          const expected = `${set1} ${operationSymbols.supersetOf} ${set2} => ${d.expected}`;
-  
-          expect(result).toEqual(expected);
-        })
+        runExpectations(data, operationSymbols.supersetOf);
       });
     });
 
@@ -369,14 +341,7 @@ describe('Csset', () => {
           }
         ];
 
-        data.forEach( d => {
-          const set1 = new Csset(d.sel1);
-          const set2 = new Csset(d.sel2);
-          const result = `${set1} ${operationSymbols.supersetOf} ${set2} => ${set1.supersetOf(set2)}`;
-          const expected = `${set1} ${operationSymbols.supersetOf} ${set2} => ${d.expected}`;
-  
-          expect(result).toEqual(expected);
-        })
+        runExpectations(data, operationSymbols.supersetOf);
       });
     });
   });
@@ -396,14 +361,7 @@ describe('Csset', () => {
         },
       ];
 
-      data.forEach( d => {
-        const set1 = new Csset(d.sel1);
-        const set2 = new Csset(d.sel2);
-        const result = `${set1} ${operationSymbols.union} ${set2} => ${set1.union(set2)}`;
-        const expected = `${set1} ${operationSymbols.union} ${set2} => ${d.expected}`;
-
-        expect(result).toEqual(expected);
-      });
+      runExpectations(data, operationSymbols.union);
     });
 
     test('should remove rules that are subset of others', () => {
@@ -415,14 +373,19 @@ describe('Csset', () => {
         },
       ];
 
-      data.forEach( d => {
-        const set1 = new Csset(d.sel1);
-        const set2 = new Csset(d.sel2);
-        const result = `${set1} ${operationSymbols.union} ${set2} => ${set1.union(set2)}`;
-        const expected = `${set1} ${operationSymbols.union} ${set2} => ${d.expected}`;
+      runExpectations(data, operationSymbols.union);
+    });
 
-        expect(result).toEqual(expected);
-      });
+    test('should do union based on attributes in subsets', () => {
+      const data = [
+        {
+          sel1: 'div, p, section[attr^=val]',
+          sel2: 'div, p#id, a, section[attr=value]',
+          expected: 'div,p,section[attr^="val"],a',
+        },
+      ];
+
+      runExpectations(data, operationSymbols.union);
     });
   });
 });

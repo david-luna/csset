@@ -10,6 +10,7 @@ type MatcherOperations = 'supersetOf' | 'subsetOf' | 'union' | 'intersection';
 
 export const operationSymbols: any = {
   supersetOf  : "\u2283",
+  subsetOf    : "\u2282",
   union       : "\u222A",
   intersection: "\u2229",
 };
