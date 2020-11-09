@@ -89,6 +89,10 @@ export class Csset {
     return set.supersetOf(this);
   }
 
+  /**
+   * Returns a new CSS set which is the union of this one and the passed as parameter
+   * @param set the other CSS set to be united with
+   */
   union(set: Csset): Csset {
     if (this.supersetOf(set)) {
       return this;
@@ -98,14 +102,12 @@ export class Csset {
       return set;
     }
 
-    // return new Csset('unknown');
-
     // If one of the sets does not have subsets just return a set with all
     if (this.layers || set.layers) {
       return new Csset(`${this},${set}`);
     }
 
-    // Make union in subsets if possible
+    // Make union of subsets if possible
     const equalSets = this.subsets.filter(thisSet => set.subsets.some(otherSet => `${thisSet}` === `${otherSet}`));
     const uniqueOne = this.subsets.filter(s => !s.subsetOf(set));
     const uniqueTwo = set.subsets.filter(s => !s.subsetOf(this));
@@ -116,6 +118,44 @@ export class Csset {
 
 
     return new Csset(`${equSelector},${oneSelector},${twoSelector}`);
+  }
+
+  /**
+   * Returns a new CSS set which is the intersection of this one and the passed as parameter
+   * or void if the intersection is an empty set
+   * @param set the other CSS set to be united with
+   */
+  intersection(set: Csset): Csset | void {
+    if (this.supersetOf(set)) {
+      return set;
+    }
+
+    if (this.subsetOf(set)) {
+      return this;
+    }
+
+    // If non of them has subsets means they're just single selectors so there is no
+    // selector to represent intersection
+    if (this.layers && set.layers) {
+      return void 0;
+    }
+
+    return void 0;
+
+    // // Make intersection of subsets if possible
+    // const equalSets = this.subsets.filter(thisSet => set.subsets.some(otherSet => `${thisSet}` === `${otherSet}`));
+    // // TODO: calculate all crossed intersections
+    // // TODO: maybe merge subsets while parsing to simplify other operations?
+    // // so now we do not need to calculate intersection between subsets of the same Csset
+    // const uniqueOne = this.subsets.filter(s => !s.subsetOf(set));
+    // const uniqueTwo = set.subsets.filter(s => !s.subsetOf(this));
+    
+    // const equSelector = equalSets.map(s => `${s}`).join(',');
+    // const oneSelector = uniqueOne.map(s => `${s}`).join(',');
+    // const twoSelector = uniqueTwo.map(s => `${s}`).join(',');
+
+
+    // return new Csset(`${equSelector},${oneSelector},${twoSelector}`);
   }
 
   toString(): string {
