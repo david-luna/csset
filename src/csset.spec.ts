@@ -8,7 +8,7 @@ interface TestItem {
 }
 
 const runExpectations = (testSet: TestItem[], operation: string) => {
-  let method: 'supersetOf' | 'subsetOf' | 'union'; // | 'intersection';
+  let method: 'supersetOf' | 'subsetOf' | 'union' | 'intersection';
   
   switch(operation) {
     case operationSymbols.supersetOf:
@@ -20,9 +20,9 @@ const runExpectations = (testSet: TestItem[], operation: string) => {
     case operationSymbols.union:
       method = 'union';
       break;
-    // case operationSymbols.intersection:
-    //   method = 'intersection';
-    //   break;
+    case operationSymbols.intersection:
+      method = 'intersection';
+      break;
   }
 
   testSet.forEach( item => {
@@ -388,4 +388,23 @@ describe('Csset', () => {
       runExpectations(data, operationSymbols.union);
     });
   });
+
+  describe('intersection', () => {
+    test('should return one set if is subset of the other', () => {
+      const data = [
+        {
+          sel1: 'div, p, aside, section',
+          sel2: 'div, p, section.class',
+          expected: 'div,p,section.class',
+        },
+        {
+          sel1: 'a, section.class',
+          sel2: 'div > p, a, section',
+          expected: 'a,section.class',
+        },
+      ];
+
+      runExpectations(data, operationSymbols.intersection);
+    });
+  })
 });
