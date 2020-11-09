@@ -1,6 +1,6 @@
 {
   "name": "csset",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "experiment to perform algebra of sets with css",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
