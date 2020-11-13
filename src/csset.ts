@@ -116,7 +116,6 @@ export class Csset {
     const oneSelector = uniqueOne.map(s => `${s}`).join(',');
     const twoSelector = uniqueTwo.map(s => `${s}`).join(',');
 
-
     return new Csset(`${equSelector},${oneSelector},${twoSelector}`);
   }
 
@@ -140,22 +139,21 @@ export class Csset {
       return void 0;
     }
 
+    // Make intersection of subsets if possible
+    // 1st attempt brute force (intersecting every set with others)
+    const oneSets = this.layers ? [this] : this.subsets;
+    const twoSets = set.layers ? [set] : set.subsets;
+    const intersections = oneSets
+      .map((setOne) => { return twoSets.map((setTwo) => setOne.intersection(setTwo));})
+      .reduce((flat, val) => flat.concat(val), [])
+      .filter((val) => !!val)
+      .map((val) => `${val}`);
+
+    if (intersections.length) {
+      return new Csset(`${intersections.join(',')}`);
+    }
+
     return void 0;
-
-    // // Make intersection of subsets if possible
-    // const equalSets = this.subsets.filter(thisSet => set.subsets.some(otherSet => `${thisSet}` === `${otherSet}`));
-    // // TODO: calculate all crossed intersections
-    // // TODO: maybe merge subsets while parsing to simplify other operations?
-    // // so now we do not need to calculate intersection between subsets of the same Csset
-    // const uniqueOne = this.subsets.filter(s => !s.subsetOf(set));
-    // const uniqueTwo = set.subsets.filter(s => !s.subsetOf(this));
-    
-    // const equSelector = equalSets.map(s => `${s}`).join(',');
-    // const oneSelector = uniqueOne.map(s => `${s}`).join(',');
-    // const twoSelector = uniqueTwo.map(s => `${s}`).join(',');
-
-
-    // return new Csset(`${equSelector},${oneSelector},${twoSelector}`);
   }
 
   toString(): string {
