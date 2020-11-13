@@ -238,8 +238,6 @@ describe('Csset', () => {
       });
 
       test('should compare properly with edge cases combinators', () => {
-        console.log('should compare properly with edge cases combinators');
-        
         const data = [
           {
             sel1: 'section > article + h1 p > a',
@@ -401,6 +399,40 @@ describe('Csset', () => {
           sel1: 'a, section.class',
           sel2: 'div > p, a, section',
           expected: 'a,section.class',
+        },
+      ];
+
+      runExpectations(data, operationSymbols.intersection);
+    });
+
+    test('should return intersections between two sets', () => {
+      const data = [
+        {
+          sel1: 'div, p.class, aside, section',
+          sel2: 'div.class, p, section.class',
+          expected: 'div.class,p.class,section.class',
+        },
+        {
+          sel1: 'section[attr], aside, div, a',
+          sel2: 'section, aside, div[attr], span , a[attr]',
+          expected: 'section[attr],aside,div[attr],a[attr]',
+        },
+      ];
+
+      runExpectations(data, operationSymbols.intersection);
+    });
+
+    test('should return undefined if there is no intersection', () => {
+      const data = [
+        {
+          sel1: 'div, p, aside, section',
+          sel2: 'span, a, quote',
+          expected: 'undefined',
+        },
+        {
+          sel1: 'div[attr=a], p, aside, section',
+          sel2: 'div[attr=b], span, a, quote',
+          expected: 'undefined',
         },
       ];
 
