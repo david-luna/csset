@@ -26,7 +26,7 @@ export enum CssMatcherSymbol {
   Occurrence = '~',
 }
 
-export const enum CombinatorValues {
+export const enum Combinators {
   ADJACENT   = '+',
   SIBLING    = '~',
   DESCENDANT = ' ',

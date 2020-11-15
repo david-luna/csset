@@ -33,11 +33,10 @@ const runExpectations = (testSet: TestItem[], operation: string) => {
 
     expect(result).toEqual(expected);
   });
-}
+};
 
 
 describe('Csset', () => {
-
   describe('constructor', () => {
     test('should parse the selector', () => {
       const selectors = [
@@ -57,221 +56,8 @@ describe('Csset', () => {
     });
   });
 
-
   describe('supersetOf', () => {
-    describe('without subsets', () => {
-      test('should return false if 1st set is more specific', () => {
-        const data = [
-          {
-            sel1: 'div > p + span > a#id ~ p',
-            sel2: '*',
-            expected: false,
-          },
-          {
-            sel1: 'div > a ~ p',
-            sel2: 'div > p',
-            expected: false,
-          },
-          {
-            sel1: '* > span#id > a',
-            sel2: 'span > a',
-            expected: false,
-          }
-        ];
-
-        runExpectations(data, operationSymbols.supersetOf);
-      });
-
-      test('should compare properly when the rule is less specific', () => {
-        const data = [
-          {
-            sel1: '*',
-            sel2: 'div > p + span > a#id ~ p',
-            expected: true,
-          },
-          {
-            sel1: 'span > a ~ p',
-            sel2: 'div > p + span > a#id ~ p',
-            expected: true,
-          },
-          {
-            sel1: 'span#id > a',
-            sel2: 'div > p + span > a',
-            expected: false,
-          }
-        ];
-
-        runExpectations(data, operationSymbols.supersetOf);
-      });
-  
-      test('should compare properly for rules with the same combinators', () => {
-  
-        const data = [
-          {
-            sel1: 'div > p + span > a ~ p',
-            sel2: 'div > p + span > a#id ~ p',
-            expected: true,
-          },
-          {
-            sel1: 'div#id > p + span > a',
-            sel2: 'div > p + span > a',
-            expected: false,
-          }
-        ];
-        
-      
-        runExpectations(data, operationSymbols.supersetOf);
-      });
-
-      test('should compare properly for rules with different combinators', () => {
-        const data = [
-          {
-            sel1: 'div p',
-            sel2: 'div > p',
-            expected: true,
-          },
-          {
-            sel1: 'span ~ a',
-            sel2: 'span + a',
-            expected: true,
-          },
-          {
-            sel1: 'div > p',
-            sel2: 'div p',
-            expected: false,
-          },
-          {
-            sel1: 'span + a',
-            sel2: 'span ~ a',
-            expected: false,
-          },
-          {
-            sel1: 'div div p a',
-            sel2: 'div > div p > a',
-            expected: true,
-          },
-          {
-            sel1: 'div ~ span ~ a',
-            sel2: 'div + span + a',
-            expected: true,
-          },
-        ];
-        
-      
-        runExpectations(data, operationSymbols.supersetOf);
-      });
-
-      test('should compare properly with different hierarchy combinators', () => {
-        const data = [
-          {
-            sel1: 'section > article > h1 > p',
-            sel2: 'section article h1 p',
-            expected: false,
-          },
-          {
-            sel1: 'section article h1 p',
-            sel2: 'section > article > h1 > p',
-            expected: true,
-          },
-          {
-            sel1: 'section article h1 p',
-            sel2: 'section > article h1 p',
-            expected: true,
-          },
-          {
-            sel1: 'section article h1 p',
-            sel2: 'section article > h1 p',
-            expected: true,
-          },
-          {
-            sel1: 'section article h1 p',
-            sel2: 'section article h1 > p',
-            expected: true,
-          },
-          {
-            sel1: 'section > article h1 p',
-            sel2: 'section article h1 > p',
-            expected: false,
-          },
-        ];
-        
-      
-        runExpectations(data, operationSymbols.supersetOf);
-      });
-
-      test('should compare properly with different sibling combinators', () => {
-        const data = [
-          {
-            sel1: 'section + article + h1 + p',
-            sel2: 'section ~ article ~ h1 ~ p',
-            expected: false,
-          },
-          {
-            sel1: 'section ~ article ~ h1 ~ p',
-            sel2: 'section + article + h1 + p',
-            expected: true,
-          },
-          {
-            sel1: 'section ~ article ~ h1 ~ p',
-            sel2: 'section + article h1 p',
-            expected: false,
-          },
-          {
-            sel1: 'section ~ article ~ h1 ~ p',
-            sel2: 'section article + h1 p',
-            expected: false,
-          },
-          {
-            sel1: 'section ~ article ~ h1 ~ p',
-            sel2: 'section article h1 + p',
-            expected: false,
-          },
-          {
-            sel1: 'section + article ~ h1 ~ p',
-            sel2: 'section ~ article ~ h1 + p',
-            expected: false,
-          },
-        ];
-        
-      
-        runExpectations(data, operationSymbols.supersetOf);
-      });
-
-      test('should compare properly with edge cases combinators', () => {
-        const data = [
-          {
-            sel1: 'section > article + h1 p > a',
-            sel2: 'section article h1 ~ p a',
-            expected: false,
-          },
-          {
-            sel1: 'section > article + h1 p > a',
-            sel2: 'section article h1 ~ p > a',
-            expected: false,
-          },
-          {
-            sel1: 'section > article + h1 p > a',
-            sel2: 'section > article h1 + p > a',
-            expected: false,
-          },
-          {
-            sel1: 'section + article + h1 + p + a',
-            sel2: 'section article h1 p > a',
-            expected: false,
-          },
-          {
-            sel1: 'p > section + article + h1 + p + a',
-            sel2: 'section article h1 div p > a',
-            expected: false,
-          },
-        ];
-        
-      
-        runExpectations(data, operationSymbols.supersetOf);
-      });
-    });
-
-    describe('with subsets in 1st selector', () => {
+    describe('with subsets in 1st csset', () => {
       test('should be superset if one of its subsets is', () => {
         const data = [
           {
@@ -295,7 +81,7 @@ describe('Csset', () => {
       });
     });
 
-    describe('with subsets in 2nd selector', () => {
+    describe('with subsets in 2nd csset', () => {
       test('should be superset if it is for all subsets in 2nd selector', () => {
         const data = [
           {
@@ -319,7 +105,7 @@ describe('Csset', () => {
       });
     });
 
-    describe('with subsets in both selectors', () => {
+    describe('with subsets in both cssets', () => {
       test('should be superset if it is for all subsets in 2nd selector', () => {
         const data = [
           {

@@ -1,25 +1,9 @@
-import { CssRule } from "./css-rule";
-import { CssSelectorLexer } from "./css-selector-lexer";
-import { CssAttribute } from "./css-attribute";
-import { CssTokenType, CombinatorValues } from "./types";
-
-const isAncestor = (combinedRule: CombinedRule): boolean => {
-  return [CombinatorValues.DESCENDANT, CombinatorValues.CHILD].indexOf(combinedRule.comb) !== -1;
-};
-
-interface CombinedRule {
-  rule: CssRule;
-  comb: CombinatorValues;
-}
-
-type SiblingRules = Array<CombinedRule>;
-type LayeredRules = Array<SiblingRules>;
-
+import { CssSelector } from './css-selector';
 
 export class Csset {
   // These properties are exclusive if one is set the other is undefined
-  layers : LayeredRules;
-  subsets: Csset[];
+  selector: CssSelector;
+  subsets : Csset[];
 
   /**
    * Parses the given selector filing up its private properties with metadata
@@ -30,8 +14,7 @@ export class Csset {
     if (selector.indexOf(',') !== -1) {
       this.subsets = selector.split(',').map((sel) => new Csset(sel));
     } else {
-      this.layers = [[]];
-      this.parseSelector(selector);
+      this.selector = new CssSelector(selector);
     }
   }
 
@@ -41,9 +24,10 @@ export class Csset {
    */
   supersetOf(set: Csset): boolean {
     // Case 1: both do not contain subsets (list of rules with values)
-    if (this.layers && set.layers) {
-      return this.rulesSuperset(this.layers, set.layers);
+    if (this.selector && set.selector) {
+      return this.selector.supersetOf(set.selector);
     }
+
     // Case 2: both do contain subsets (all subsets must be contained)
     if (this.subsets?.length && set.subsets?.length) {
       let index = set.subsets.length;
@@ -58,7 +42,7 @@ export class Csset {
       return true;
     }
     // Case 3: this does not & received Csset does (all subsets must be contained)
-    if (this.layers?.length && set.subsets?.length) {
+    if (this.selector && set.subsets?.length) {
       let index = set.subsets.length;
 
       while(index--) {
@@ -68,8 +52,9 @@ export class Csset {
       }
       return true;
     }
+
     // Case 4: this does & received Csset does not (one of my subsets must contain)
-    if (this.subsets?.length && set.layers?.length) {
+    if (this.subsets?.length && set.selector) {
       let index = this.subsets.length;
 
       while(index--) {
@@ -103,7 +88,8 @@ export class Csset {
     }
 
     // If one of the sets does not have subsets just return a set with all
-    if (this.layers || set.layers) {
+    // if (this.layers || set.layers) {
+    if (this.selector || set.selector) {
       return new Csset(`${this},${set}`);
     }
 
@@ -135,14 +121,17 @@ export class Csset {
 
     // If non of them has subsets means they're just single selectors so there is no
     // selector to represent intersection
-    if (this.layers && set.layers) {
+    // if (this.layers && set.layers) {
+    if (this.selector && set.selector) {
       return void 0;
     }
 
     // Make intersection of subsets if possible
     // 1st attempt brute force (intersecting every set with others)
-    const oneSets = this.layers ? [this] : this.subsets;
-    const twoSets = set.layers ? [set] : set.subsets;
+    // const oneSets = this.layers ? [this] : this.subsets;
+    // const twoSets = set.layers ? [set] : set.subsets;
+    const oneSets = this.selector ? [this] : this.subsets;
+    const twoSets = set.selector ? [set] : set.subsets;
     const intersections = oneSets
       .map((setOne) => { return twoSets.map((setTwo) => setOne.intersection(setTwo));})
       .reduce((flat, val) => flat.concat(val), [])
@@ -157,163 +146,10 @@ export class Csset {
   }
 
   toString(): string {
-    if (this.layers?.length) {
-      let result = '';
-      this.layers.forEach(layer => {
-        layer.forEach(combinedRule => {
-          const comb = combinedRule.comb ? ` ${combinedRule.comb} ` : ' ';
-          result += `${combinedRule.rule}${comb}`;
-        });
-      });
-
-      return result.trim();
+    if (this.selector) {
+      return `${this.selector}`;
     }
 
     return this.subsets.map(s => `${s}`).join(',');
-  }
-
-
-  /**
-   * Fills the list of rules with it's combinators
-   * @param selector the selector to parse
-   */
-  private parseSelector(selector: string): void {
-    const lexer = new CssSelectorLexer(selector);
-    let rule    = new CssRule();
-    let layer   = this.layers[0];
-    let token;
-
-    while(token = lexer.nextToken()) {
-      switch(token.type) {
-        case CssTokenType.Element:
-          rule.element = token.values[0];
-          break;
-        case CssTokenType.Id:
-          rule.id = token.values[0];
-          break;
-        case CssTokenType.Class:
-          rule.addClass(token.values[0]);
-          break;
-        case CssTokenType.Attribute:
-          rule.addAttribute(new CssAttribute(token.values));
-          break;
-        case CssTokenType.Combinator:
-        case CssTokenType.Space:
-          const comb     = token.values[0] as CombinatorValues;
-          const combRule = { rule, comb };
-          
-          rule = new CssRule();
-          if (isAncestor(combRule)) {
-            layer.push(combRule)
-            this.layers.push([]);
-            layer = this.layers[this.layers.length - 1];
-          } else {
-            layer.push(combRule);
-          }
-          break;
-        default:
-          throw new SyntaxError(`Unknown token ${token.values[0]} at position ${token.position}`);
-      }
-    }
-    // last rule should be pushed in the layer
-    layer.push({ rule, comb: CombinatorValues.NONE });
-  }
-
-  private rulesSuperset(rulesOne: LayeredRules, rulesTwo: LayeredRules): boolean {
-    // Base case: container is empty (meaning we have checked all its rules)
-    // *
-    // a
-    if (rulesOne.length === 0) {
-      return true;
-    }
-
-    // Base case: rulesTwo is empty (meaning we have checked all its rules)
-    // a
-    // *
-    if (rulesTwo.length === 0) {
-      return false;
-    }
-
-    // Base case: rulesOne is more specific than rulesTwo
-    // a b c
-    // a b
-    if (rulesOne.length > rulesTwo.length) {
-      return false;
-    }
-
-    const layerOne = rulesOne[rulesOne.length - 1];
-    const layerTwo = rulesTwo[rulesTwo.length - 1];
-
-    // Base case: layerOne has stronger relationship with descendant than layerTwo
-    // a > b > (d
-    // a > b (d
-    const descendantCombOne = layerOne[layerOne.length - 1].comb;
-    const descendantCombTwo = layerTwo[layerTwo.length - 1].comb;
-    if (descendantCombOne === CombinatorValues.CHILD && descendantCombTwo === CombinatorValues.DESCENDANT) {
-      return false;
-    }
-
-    // a > b > c
-    // a > b > c > d > e
-    if (this.layerSuperset(layerOne, layerTwo)) {
-      return this.rulesSuperset(rulesOne.slice(0, -1), rulesTwo.slice(0, -1));
-    }
-
-    // If the deepest layer isn't a superset then selector can't be
-    // c > e
-    // a > c > (d
-    // If CHILD it should had match before
-    // a > b > (d
-    // a > c > (d
-    if (descendantCombOne === CombinatorValues.CHILD || descendantCombOne === CombinatorValues.NONE) {
-      return false;
-    }
-
-    // For generic sibling walk up the second list of rules
-    return this.rulesSuperset(rulesOne, rulesTwo.slice(0, -1));
-  }
-
-
-  private layerSuperset(layerOne: SiblingRules, layerTwo: SiblingRules): boolean {
-    // Base case: container is empty (meaning we have checked all its rules)
-    if (layerOne.length === 0) {
-      return true;
-    }
-
-    // Base case: layerTwo is empty (meaning we have checked all its layer)
-    if (layerTwo.length === 0) {
-      return false;
-    }
-
-    // Base case: layerOne is more specific than layerTwo
-    if (layerOne.length > layerTwo.length) {
-      return false;
-    }
-
-    const combinedRuleOne = layerOne[layerOne.length - 1];
-    const combinedRuleTwo = layerTwo[layerTwo.length - 1];
-
-    // Base case: combinedRuleOne has stronger relationship with sibling than combinedRuleTwo
-    // a + b + (d
-    // a + b ~ (d
-    const siblingCombOne = combinedRuleOne.comb;
-    const siblingCombTwo = combinedRuleTwo.comb;
-    if (siblingCombOne === CombinatorValues.ADJACENT && siblingCombTwo === CombinatorValues.SIBLING) {
-      return false;
-    }
-
-    // a + b ~ d
-    // a + b + c + d
-    if (combinedRuleOne.rule.supersetOf(combinedRuleTwo.rule)) {
-      return this.layerSuperset(layerOne.slice(0, -1), layerTwo.slice(0, -1));
-    }
-
-    // If ADJACENT it should had match before
-    if (combinedRuleOne.comb === CombinatorValues.ADJACENT) {
-      return false;
-    }
-
-    // For generic sibling walk up the second list
-    return this.layerSuperset(layerOne, layerTwo.slice(0, -1));
   }
 }
