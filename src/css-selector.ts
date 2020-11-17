@@ -40,6 +40,19 @@ export class CssSelector {
     return selector.supersetOf(this);
   }
 
+  intersection(selector: CssSelector): CssSelector | void {
+    if (this.supersetOf(selector)) {
+      return selector;
+    }
+
+    if (selector.supersetOf(this)) {
+      return this;
+    }
+
+    // TODO: other possible cases??
+    return void 0;
+  }
+
   toString(): string {
     let result = '';
     this.levels.forEach(level => {

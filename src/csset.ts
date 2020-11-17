@@ -1,9 +1,7 @@
 import { CssSelector } from './css-selector';
 
 export class Csset {
-  // These properties are exclusive if one is set the other is undefined
-  selector: CssSelector;
-  subsets : Csset[];
+  selectors: CssSelector[];
 
   /**
    * Parses the given selector filing up its private properties with metadata
@@ -11,11 +9,7 @@ export class Csset {
    */
   constructor (selector: string) {
     // TODO: this is error prone since attr values may contain this char
-    if (selector.indexOf(',') !== -1) {
-      this.subsets = selector.split(',').map((sel) => new Csset(sel));
-    } else {
-      this.selector = new CssSelector(selector);
-    }
+    this.selectors = selector.split(',').map((sel) => new CssSelector(sel));
   }
 
   /**
@@ -23,47 +17,16 @@ export class Csset {
    * @param set the set to check with
    */
   supersetOf(set: Csset): boolean {
-    // Case 1: both do not contain subsets (list of rules with values)
-    if (this.selector && set.selector) {
-      return this.selector.supersetOf(set.selector);
-    }
+    let index = set.selectors.length;
 
-    // Case 2: both do contain subsets (all subsets must be contained)
-    if (this.subsets?.length && set.subsets?.length) {
-      let index = set.subsets.length;
+    while(index--) {
+      const containerIndex = this.selectors.findIndex(s => s.supersetOf(set.selectors[index]));
 
-      while(index--) {
-        const containerIndex = this.subsets.findIndex(s => s.supersetOf(set.subsets[index]));
-
-        if (containerIndex === -1) {
-          return false;
-        }
-      }
-      return true;
-    }
-    // Case 3: this does not & received Csset does (all subsets must be contained)
-    if (this.selector && set.subsets?.length) {
-      let index = set.subsets.length;
-
-      while(index--) {
-        if (!this.supersetOf(set.subsets[index])) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    // Case 4: this does & received Csset does not (one of my subsets must contain)
-    if (this.subsets?.length && set.selector) {
-      let index = this.subsets.length;
-
-      while(index--) {
-        if (this.subsets[index].supersetOf(set)) {
-          return true;
-        }
+      if (containerIndex === -1) {
+        return false;
       }
     }
-    return false;
+    return true;
   }
 
   /**
@@ -87,18 +50,12 @@ export class Csset {
       return set;
     }
 
-    // If one of the sets does not have subsets just return a set with all
-    // if (this.layers || set.layers) {
-    if (this.selector || set.selector) {
-      return new Csset(`${this},${set}`);
-    }
-
-    // Make union of subsets if possible
-    const equalSets = this.subsets.filter(thisSet => set.subsets.some(otherSet => `${thisSet}` === `${otherSet}`));
-    const uniqueOne = this.subsets.filter(s => !s.subsetOf(set));
-    const uniqueTwo = set.subsets.filter(s => !s.subsetOf(this));
+    // Make union of selectors if possible
+    const equalSel  = this.selectors.filter(thisSel => set.selectors.some(otherSel => `${thisSel}` === `${otherSel}`));
+    const uniqueOne = this.selectors.filter(thisSel => !set.selectors.some(otherSel => thisSel.subsetOf(otherSel)));
+    const uniqueTwo = set.selectors.filter(otherSel => !this.selectors.some(thisSel => otherSel.subsetOf(thisSel)));
     
-    const equSelector = equalSets.map(s => `${s}`).join(',');
+    const equSelector = equalSel.map(s => `${s}`).join(',');
     const oneSelector = uniqueOne.map(s => `${s}`).join(',');
     const twoSelector = uniqueTwo.map(s => `${s}`).join(',');
 
@@ -119,21 +76,10 @@ export class Csset {
       return this;
     }
 
-    // If non of them has subsets means they're just single selectors so there is no
-    // selector to represent intersection
-    // if (this.layers && set.layers) {
-    if (this.selector && set.selector) {
-      return void 0;
-    }
-
-    // Make intersection of subsets if possible
+    // Make intersection of selectors if possible
     // 1st attempt brute force (intersecting every set with others)
-    // const oneSets = this.layers ? [this] : this.subsets;
-    // const twoSets = set.layers ? [set] : set.subsets;
-    const oneSets = this.selector ? [this] : this.subsets;
-    const twoSets = set.selector ? [set] : set.subsets;
-    const intersections = oneSets
-      .map((setOne) => { return twoSets.map((setTwo) => setOne.intersection(setTwo));})
+    const intersections = this.selectors
+      .map(thisSel => set.selectors.map(otherSel => thisSel.intersection(otherSel)))
       .reduce((flat, val) => flat.concat(val), [])
       .filter((val) => !!val)
       .map((val) => `${val}`);
@@ -146,10 +92,6 @@ export class Csset {
   }
 
   toString(): string {
-    if (this.selector) {
-      return `${this.selector}`;
-    }
-
-    return this.subsets.map(s => `${s}`).join(',');
+    return this.selectors.map(s => `${s}`).join(',');
   }
 }
