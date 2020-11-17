@@ -22,7 +22,7 @@ export enum CssMatcherSymbol {
   Prefix     = '^',
   Suffix     = '$',
   Contains   = '*',
-  Subcode    = '|',
+  SubCode    = '|',
   Occurrence = '~',
 }
 

@@ -3,7 +3,7 @@ import { CssAttributeMatcher } from "../css-attribute-matcher";
 
 const supersetSymbols = [
   CssMatcherSymbol.Prefix,
-  CssMatcherSymbol.Subcode,
+  CssMatcherSymbol.SubCode,
   CssMatcherSymbol.Equal,
 ];
 
@@ -21,7 +21,7 @@ export class CssPrefixMatcher extends CssAttributeMatcher {
 
   union ( matcher: CssAttributeMatcher ): string | null {
 
-    if ( this.value === matcher.value && matcher.symbol === CssMatcherSymbol.Subcode ) {
+    if ( this.value === matcher.value && matcher.symbol === CssMatcherSymbol.SubCode ) {
       return `${this}`;
     }
 
@@ -39,7 +39,7 @@ export class CssPrefixMatcher extends CssAttributeMatcher {
       if ( matcher.symbol === CssMatcherSymbol.Prefix ) {
         return `^="${matcher.value}"`;
       }
-      if ( matcher.symbol === CssMatcherSymbol.Subcode ) {
+      if ( matcher.symbol === CssMatcherSymbol.SubCode ) {
         return `|="${matcher.value}"`;
       }
     }
