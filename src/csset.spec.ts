@@ -171,6 +171,17 @@ describe('Csset', () => {
 
       runExpectations(data, operationSymbols.union);
     });
+    test('should do union by combining two sets if there is nothing to combine', () => {
+      const data = [
+        {
+          sel1: '.firstClass',
+          sel2: '.secondClass',
+          expected: '*.firstClass,*.secondClass',
+        },
+      ];
+
+      runExpectations(data, operationSymbols.union);
+    });
   });
 
   describe('intersection', () => {

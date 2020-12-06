@@ -1,5 +1,5 @@
 import { CssAttributeMatcher } from "../css-attribute-matcher";
-import { CssMatcherSymbol, CssToken } from "../types";
+import { CssMatcherSymbol } from "../types";
 import { CssPresenceMatcher } from "./presence-matcher";
 import { CssPrefixMatcher } from "./prefix-matcher";
 import { CssSuffixMatcher } from "./suffix-matcher";

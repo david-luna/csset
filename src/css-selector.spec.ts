@@ -1,10 +1,5 @@
 import { CssSelector } from './css-selector';
-import { CssSelectorLexer } from './css-selector-lexer';
-
 import { operationSymbols } from '../test/utils';
-import { CssRule } from './css-rule';
-import { CssTokenType } from './types';
-
 
 interface TestItem {
   sel1: string;

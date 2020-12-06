@@ -54,12 +54,9 @@ export class Csset {
     const equalSel  = this.selectors.filter(thisSel => set.selectors.some(otherSel => `${thisSel}` === `${otherSel}`));
     const uniqueOne = this.selectors.filter(thisSel => !set.selectors.some(otherSel => thisSel.subsetOf(otherSel)));
     const uniqueTwo = set.selectors.filter(otherSel => !this.selectors.some(thisSel => otherSel.subsetOf(thisSel)));
-    
-    const equSelector = equalSel.map(s => `${s}`).join(',');
-    const oneSelector = uniqueOne.map(s => `${s}`).join(',');
-    const twoSelector = uniqueTwo.map(s => `${s}`).join(',');
+    const allSelectors = equalSel.concat(uniqueOne, uniqueTwo);
 
-    return new Csset(`${equSelector},${oneSelector},${twoSelector}`);
+    return new Csset(`${allSelectors.map(s => s.toString()).join(',')}`);
   }
 
   /**
