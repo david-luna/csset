@@ -24,7 +24,6 @@ Works in all modern browsers :)
 ### Basic
 
 ```javascript
-// Typescript
 import { Csset } from 'csset';
 
 // Create your sets
@@ -33,10 +32,22 @@ const set2 = new Csset('div');
 const set3 = new Csset('p');
 
 // Make set operations
-console.assert(set1.supersetOf(set2));
-console.assert(set1.subsetOf(set3));
-console.assert(set2.supersetOf(set1));
-console.assert(set3.supersetOf(set1));
+// supersetOf
+console.assert(set1.supersetOf(set2) === false);
+console.assert(set2.supersetOf(set1) === false);
+console.assert(set3.supersetOf(set1) === true);
+
+// subsetOf
+console.assert(set1.subsetOf(set3) === true);
+console.assert(set1.subsetOf(set2) === false);
+
+// union
+console.assert(set1.union(set3).toString() === 'p');
+console.assert(set1.union(set2).toString() === 'div > p, div');
+
+// intersection
+console.assert(set1.intersection(set3).toString() === 'div > p');
+console.assert(set1.intersection(set2) === undefined); // void means empty set
 
 ```
 
@@ -48,5 +59,4 @@ console.assert(set3.supersetOf(set1));
 ## Roadmap
 
 - Add better support for complex CSS selectors using parsel package
-- Add `union` and `intersection` methods
 - consider other set operations (diff, complementary, ...)

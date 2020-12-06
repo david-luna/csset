@@ -1,12 +1,12 @@
 import { CssAttributeMatcher } from "../css-attribute-matcher";
-import { CssMatcherSymbol, CssToken } from "../types";
+import { CssMatcherSymbol } from "../types";
 import { CssPresenceMatcher } from "./presence-matcher";
 import { CssPrefixMatcher } from "./prefix-matcher";
 import { CssSuffixMatcher } from "./suffix-matcher";
 import { CssEqualMatcher } from "./equal-matcher";
 import { CssContainsMatcher } from "./contains-matcher";
 import { CssOccurrenceMatcher } from "./occurrence-matcher";
-import { CssSubcodeMatcher } from "./subcode-matcher";
+import { CssSubCodeMatcher } from "./subcode-matcher";
 
 interface CssMatcherConstructor {
   new (value: string): CssAttributeMatcher
@@ -19,7 +19,7 @@ const clazzez: { [symbol: string]: CssMatcherConstructor }  = {
   [CssMatcherSymbol.Equal]     : CssEqualMatcher,
   [CssMatcherSymbol.Contains]  : CssContainsMatcher,
   [CssMatcherSymbol.Occurrence]: CssOccurrenceMatcher,
-  [CssMatcherSymbol.Subcode]   : CssSubcodeMatcher,
+  [CssMatcherSymbol.SubCode]   : CssSubCodeMatcher,
 }
 
 const VALUE_REGEXPS = {

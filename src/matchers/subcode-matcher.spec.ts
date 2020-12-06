@@ -1,11 +1,11 @@
-import { CssSubcodeMatcher } from './subcode-matcher';
+import { CssSubCodeMatcher } from './subcode-matcher';
 import { checkMatcherOperation } from '../../test/utils';
 
 
 describe('subcode matcher', () => {
   describe('supersetOf', () => {
     test('supersetOf should work with same value and other types', () => {
-      const matcher = new CssSubcodeMatcher('value');
+      const matcher = new CssSubCodeMatcher('value');
       const dataset = [
         { matcher: ''       , expected: false },
         // Combinations of equal
@@ -58,7 +58,7 @@ describe('subcode matcher', () => {
 
   describe('union', () => {
     test('union should work with same or other types', () => {
-      const matcher = new CssSubcodeMatcher('value');
+      const matcher = new CssSubCodeMatcher('value');
       const dataset = [
         { matcher: ''        , expected: '' },
         // Combinations of equal
@@ -111,7 +111,7 @@ describe('subcode matcher', () => {
 
   describe('intersection', () => {
     test('intersection should work with same or other types', () => {
-      const matcher = new CssSubcodeMatcher('value');
+      const matcher = new CssSubCodeMatcher('value');
       const dataset = [
         { matcher: ''         , expected: '|="value"' },
         // Combinations of equal

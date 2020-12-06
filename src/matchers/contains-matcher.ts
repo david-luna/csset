@@ -4,7 +4,7 @@ import { CssAttributeMatcher } from "../css-attribute-matcher";
 const supersetSymbols = [
   CssMatcherSymbol.Prefix,
   CssMatcherSymbol.Suffix,
-  CssMatcherSymbol.Subcode,
+  CssMatcherSymbol.SubCode,
   CssMatcherSymbol.Occurrence,
   CssMatcherSymbol.Contains,
   CssMatcherSymbol.Equal,
