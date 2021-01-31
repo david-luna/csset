@@ -40,7 +40,7 @@ function markCircle(td: HTMLTableCellElement, row: number, col: number, size: nu
   }
 }
 
-
+// man function which creates the playground grid
 export function setPlayground(table: HTMLTableElement, size: number): void {
 
   for (let row = 0; row < size; row++) {
