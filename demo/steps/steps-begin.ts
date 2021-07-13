@@ -2,7 +2,7 @@ import { Step } from './types';
 
 declare var Csset: any;
 
-export const STEPS_INTRO: Step[] = [
+export const STEPS_BEGIN: Step[] = [
   {
     comment: "These are the cells with class quadrant-one",
     code: () => {

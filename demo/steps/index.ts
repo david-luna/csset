@@ -1,8 +1,10 @@
-import { STEPS_INTRO } from './steps-intro';
+import { STEPS_BEGIN } from './steps-begin';
 import { STEPS_UNION } from './steps-union';
+import { STEPS_INTERSECTION } from './steps-intersection';
 
 export * from './runner';
 export const STEPS = [
-  ...STEPS_INTRO,
+  ...STEPS_BEGIN,
   ...STEPS_UNION,
+  ...STEPS_INTERSECTION,
 ];
