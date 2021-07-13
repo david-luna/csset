@@ -22,5 +22,4 @@ export const STEPS_UNION: Step[] = [
       return quadrantOne.union(quadrantTwo).union(circle);
     }
   },
-  
 ];
