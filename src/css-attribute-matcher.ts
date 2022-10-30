@@ -1,7 +1,7 @@
 import { CssMatcherSymbol } from './types';
 
 export class CssAttributeMatcher {
-  readonly symbol: CssMatcherSymbol;
+  readonly symbol!: CssMatcherSymbol;
   value: string;
 
   constructor(val: string) {

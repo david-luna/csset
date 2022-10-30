@@ -1,3 +1,4 @@
+/* eslint-disable no-shadow */
 export enum CssTokenType {
   Void,
   Id,

@@ -1,8 +1,8 @@
 import { CssAttribute } from './css-attribute';
 
 export class CssRule {
-  private _id: string;
-  private _element: string;
+  private _id = '';
+  private _element = '';
   classes: Set<string> = new Set();
   attribs: Map<string, CssAttribute> = new Map();
 
@@ -27,7 +27,7 @@ export class CssRule {
     return this._element || '*';
   }
 
-  addAttribute(attribute: CssAttribute) {
+  addAttribute(attribute: CssAttribute): void {
     const prevAttribute = this.attribs.get(attribute.name);
 
     if (prevAttribute) {
@@ -43,7 +43,7 @@ export class CssRule {
     }
   }
 
-  addClass(className: string) {
+  addClass(className: string): void {
     this.classes.add(className);
   }
 

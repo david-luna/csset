@@ -5,10 +5,9 @@ export class CssAttribute {
   name: string;
   matchers: CssAttributeMatcher[] = [];
 
-  constructor([name, symbol, value]: string[]) {
+  constructor(parts: string[]) {
+    const [name, symbol = '', value] = parts;
     this.name = name;
-    symbol = symbol || '';
-    value = value;
 
     const matcher = CssMatcherFactory.create(`${symbol}${value}`);
     let intersection;

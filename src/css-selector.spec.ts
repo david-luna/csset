@@ -37,6 +37,7 @@ const runExpectations = (testSet: TestItem[], operation: string) => {
 
 describe('CssSelector', () => {
   describe('supersetOf', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const reverse = (data: any[]) =>
       data.map((d) => ({
         sel1: d.sel2,

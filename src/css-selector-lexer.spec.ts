@@ -93,6 +93,7 @@ describe('CssSelectorLexer', () => {
       },
     ]);
 
+    // eslint-disable-next-line prettier/prettier
     expect(tokenize('[attr=\'value\']')).toEqual([
       {
         type: CssTokenType.Attribute,

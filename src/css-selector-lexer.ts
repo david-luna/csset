@@ -53,9 +53,7 @@ export class CssSelectorLexer {
     const sel = this.selector;
     const pos = this.position;
     const matcher = CSS_TOKEN_MATCHERS.find((t) => t.rx.test(sel));
-    let execArray: RegExpExecArray | null | undefined;
-
-    execArray = matcher && matcher.rx.exec(sel);
+    const execArray = matcher && matcher.rx.exec(sel);
 
     if (matcher && execArray) {
       const [full, ...partials] = execArray;
