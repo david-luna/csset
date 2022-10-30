@@ -4,46 +4,44 @@
 // https://regex101.com/
 // TODO: use this npm lib
 // npm install parsel-js
-import { CssTokenType, CssToken } from "./types";
+import { CssTokenType, CssToken } from './types';
 
 const CSS_TOKEN_MATCHERS = [
   {
     type: CssTokenType.Element,
-    rx:/^(-?[_a-z][_a-z0-9-]*|\*)/i,
+    rx: /^(-?[_a-z][_a-z0-9-]*|\*)/i,
   },
   {
     type: CssTokenType.Id,
-    rx:/^#(-?[_a-z][_a-z0-9-]*)/i
+    rx: /^#(-?[_a-z][_a-z0-9-]*)/i,
   },
   {
     type: CssTokenType.Class,
-    rx:/^\.(-?[_a-z][_a-z0-9-]*)/i
+    rx: /^\.(-?[_a-z][_a-z0-9-]*)/i,
   },
   {
     type: CssTokenType.Attribute,
-    rx:/^\[(-?[_a-z][_a-z0-9-]*)(?:([\^\$\*\|~]?=)?([_a-z0-9\u0080-\uFFFF]+|"[^"]*"|'[^']*'))?\]/i
+    rx: /^\[(-?[_a-z][_a-z0-9-]*)(?:([\^\$\*\|~]?=)?([_a-z0-9\u0080-\uFFFF]+|"[^"]*"|'[^']*'))?\]/i,
   },
   {
     type: CssTokenType.Combinator,
-    rx:/^(?:\s*)([~>\+])(?:\s*)/
+    rx: /^(?:\s*)([~>\+])(?:\s*)/,
   },
   {
     type: CssTokenType.Separator,
-    rx:/^(?:\s*)(,)(?:\s*)/
+    rx: /^(?:\s*)(,)(?:\s*)/,
   },
   {
     type: CssTokenType.Space,
-    rx:/^(\s+)/
+    rx: /^(\s+)/,
   },
 ];
 
-
 export class CssSelectorLexer {
-
   private selector: string;
-  private position: number = 0;
+  private position = 0;
 
-  constructor (selector: string) {
+  constructor(selector: string) {
     this.selector = selector.trim();
   }
 
@@ -52,8 +50,8 @@ export class CssSelectorLexer {
       return void 0;
     }
 
-    const sel     = this.selector;
-    const pos     = this.position;
+    const sel = this.selector;
+    const pos = this.position;
     const matcher = CSS_TOKEN_MATCHERS.find((t) => t.rx.test(sel));
     let execArray: RegExpExecArray | null | undefined;
 
@@ -65,10 +63,10 @@ export class CssSelectorLexer {
       this.position = pos + full.length;
 
       return {
-        type    : matcher.type,
-        values  : this.sanitizeValues(partials),
+        type: matcher.type,
+        values: this.sanitizeValues(partials),
         position: pos,
-        length  : full.length
+        length: full.length,
       };
     }
 
@@ -76,18 +74,20 @@ export class CssSelectorLexer {
     this.selector = '';
 
     return {
-      type    : CssTokenType.Unknown,
-      values  : [sel],
+      type: CssTokenType.Unknown,
+      values: [sel],
       position: pos,
-      length  : sel.length,
-    }
+      length: sel.length,
+    };
   }
 
   private sanitizeValues(values: string[]): string[] {
-    return values.filter(value => !!value).map(value => {
-      const isQuotedString = /^('|")[^'"]+\1$/.test(value);
-      
-      return isQuotedString ? value.slice(1, -1) : value;
-    });
+    return values
+      .filter((value) => !!value)
+      .map((value) => {
+        const isQuotedString = /^('|")[^'"]+\1$/.test(value);
+
+        return isQuotedString ? value.slice(1, -1) : value;
+      });
   }
 }

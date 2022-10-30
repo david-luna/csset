@@ -3,14 +3,14 @@ import { operationSymbols } from '../test/utils';
 
 interface TestItem {
   sel1: string;
-  sel2: string
+  sel2: string;
   expected: string | boolean;
 }
 
 const runExpectations = (testSet: TestItem[], operation: string) => {
-  let method: 'supersetOf'| 'subsetOf'; // | 'union' | 'intersection';
-  
-  switch(operation) {
+  let method: 'supersetOf' | 'subsetOf'; // | 'union' | 'intersection';
+
+  switch (operation) {
     case operationSymbols.supersetOf:
       method = 'supersetOf';
       break;
@@ -25,7 +25,7 @@ const runExpectations = (testSet: TestItem[], operation: string) => {
     //   break;
   }
 
-  testSet.forEach( item => {
+  testSet.forEach((item) => {
     const selector1 = new CssSelector(item.sel1);
     const selector2 = new CssSelector(item.sel2);
     const result = `${selector1} ${operation} ${selector2} => ${selector1[method](selector2)}`;
@@ -37,11 +37,12 @@ const runExpectations = (testSet: TestItem[], operation: string) => {
 
 describe('CssSelector', () => {
   describe('supersetOf', () => {
-    const reverse = (data: any[]) => data.map(d => ({
-      sel1: d.sel2,
-      sel2: d.sel1,
-      expected: d.expected
-    }));
+    const reverse = (data: any[]) =>
+      data.map((d) => ({
+        sel1: d.sel2,
+        sel2: d.sel1,
+        expected: d.expected,
+      }));
 
     test('should return false if 1st set is more specific', () => {
       const data = [
@@ -59,13 +60,13 @@ describe('CssSelector', () => {
           sel1: '* > span#id > a',
           sel2: 'span > a',
           expected: false,
-        }
+        },
       ];
 
       runExpectations(data, operationSymbols.supersetOf);
       runExpectations(reverse(data), operationSymbols.subsetOf);
     });
-  
+
     test('should compare properly when the rule is less specific', () => {
       const data = [
         {
@@ -82,15 +83,14 @@ describe('CssSelector', () => {
           sel1: 'span#id > a',
           sel2: 'div > p + span > a',
           expected: false,
-        }
+        },
       ];
-  
+
       runExpectations(data, operationSymbols.supersetOf);
       runExpectations(reverse(data), operationSymbols.subsetOf);
     });
-  
+
     test('should compare properly for rules with the same combinators', () => {
-  
       const data = [
         {
           sel1: 'div > p + span > a ~ p',
@@ -101,13 +101,13 @@ describe('CssSelector', () => {
           sel1: 'div#id > p + span > a',
           sel2: 'div > p + span > a',
           expected: false,
-        }
+        },
       ];
 
       runExpectations(data, operationSymbols.supersetOf);
       runExpectations(reverse(data), operationSymbols.subsetOf);
     });
-  
+
     test('should compare properly for rules with different combinators', () => {
       const data = [
         {
@@ -145,7 +145,7 @@ describe('CssSelector', () => {
       runExpectations(data, operationSymbols.supersetOf);
       runExpectations(reverse(data), operationSymbols.subsetOf);
     });
-  
+
     test('should compare properly with different hierarchy combinators', () => {
       const data = [
         {
@@ -183,7 +183,7 @@ describe('CssSelector', () => {
       runExpectations(data, operationSymbols.supersetOf);
       runExpectations(reverse(data), operationSymbols.subsetOf);
     });
-  
+
     test('should compare properly with different sibling combinators', () => {
       const data = [
         {
@@ -221,7 +221,7 @@ describe('CssSelector', () => {
       runExpectations(data, operationSymbols.supersetOf);
       runExpectations(reverse(data), operationSymbols.subsetOf);
     });
-  
+
     test('should compare properly with edge cases combinators', () => {
       const data = [
         {
