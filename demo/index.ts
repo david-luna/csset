@@ -1,10 +1,11 @@
 import { Csset } from '../src/csset';
 import { setPlayground } from './playground';
-import { STEPS, executeStep } from './steps';
+import { STEPS, runStep } from './steps';
 
 declare var hljs: any;
 
-(window as any).createSet = (sel: string) => new Csset(sel);
+(window as any).Csset = Csset;
+// (window as any).createSet = (sel: string) => new Csset(sel);
 
 // Where to put step info
 const commentArea = document.querySelector('#comment') as HTMLParagraphElement;
@@ -31,7 +32,7 @@ nextButton.addEventListener('click', () => {
   const step = STEPS[index++];
 
   // Put comment and display snippet
-  executeStep(step, commentArea, codeArea, styleArea);
+  runStep(step, commentArea, codeArea, styleArea);
   hljs.highlightBlock(codeArea);
 
   if (index >= STEPS.length) {

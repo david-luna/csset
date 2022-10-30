@@ -3,14 +3,14 @@ import { operationSymbols } from '../test/utils';
 
 interface TestItem {
   sel1: string;
-  sel2: string
+  sel2: string;
   expected: string | boolean;
 }
 
 const runExpectations = (testSet: TestItem[], operation: string) => {
   let method: 'supersetOf' | 'subsetOf' | 'union' | 'intersection';
-  
-  switch(operation) {
+
+  switch (operation) {
     case operationSymbols.supersetOf:
       method = 'supersetOf';
       break;
@@ -25,7 +25,7 @@ const runExpectations = (testSet: TestItem[], operation: string) => {
       break;
   }
 
-  testSet.forEach( item => {
+  testSet.forEach((item) => {
     const set1 = new Csset(item.sel1);
     const set2 = new Csset(item.sel2);
     const result = `${set1} ${operation} ${set2} => ${set1[method](set2)}`;
@@ -34,7 +34,6 @@ const runExpectations = (testSet: TestItem[], operation: string) => {
     expect(result).toEqual(expected);
   });
 };
-
 
 describe('Csset', () => {
   describe('constructor', () => {
@@ -47,12 +46,12 @@ describe('Csset', () => {
         'div > section p ~ span',
         'div > section p ~ span, div > p',
       ];
-    
-      selectors.forEach(sel => {
+
+      selectors.forEach((sel) => {
         const set = new Csset(sel);
-    
+
         expect(set).toBeDefined();
-      })
+      });
     });
   });
 
@@ -74,7 +73,7 @@ describe('Csset', () => {
             sel1: 'div, p, span',
             sel2: 'div > p + span > a',
             expected: false,
-          }
+          },
         ];
 
         runExpectations(data, operationSymbols.supersetOf);
@@ -98,7 +97,7 @@ describe('Csset', () => {
             sel1: 'div',
             sel2: 'div, p, span',
             expected: false,
-          }
+          },
         ];
 
         runExpectations(data, operationSymbols.supersetOf);
@@ -122,7 +121,7 @@ describe('Csset', () => {
             sel1: 'div, p#id',
             sel2: 'div, p, span',
             expected: false,
-          }
+          },
         ];
 
         runExpectations(data, operationSymbols.supersetOf);
@@ -235,5 +234,5 @@ describe('Csset', () => {
 
       runExpectations(data, operationSymbols.intersection);
     });
-  })
+  });
 });

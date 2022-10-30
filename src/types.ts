@@ -1,3 +1,4 @@
+/* eslint-disable no-shadow */
 export enum CssTokenType {
   Void,
   Id,
@@ -10,26 +11,26 @@ export enum CssTokenType {
   Unknown,
 }
 export interface CssToken {
-  type    : CssTokenType,
-  values  : string[];
+  type: CssTokenType;
+  values: string[];
   position: number;
-  length  : number;
+  length: number;
 }
 
 export enum CssMatcherSymbol {
-  Presence   = '',
-  Equal      = '=',
-  Prefix     = '^',
-  Suffix     = '$',
-  Contains   = '*',
-  SubCode    = '|',
+  Presence = '',
+  Equal = '=',
+  Prefix = '^',
+  Suffix = '$',
+  Contains = '*',
+  SubCode = '|',
   Occurrence = '~',
 }
 
 export const enum Combinators {
-  ADJACENT   = '+',
-  SIBLING    = '~',
+  ADJACENT = '+',
+  SIBLING = '~',
   DESCENDANT = ' ',
-  CHILD      = '>',
-  NONE       = '',
+  CHILD = '>',
+  NONE = '',
 }

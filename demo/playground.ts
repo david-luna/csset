@@ -40,7 +40,7 @@ function markCircle(td: HTMLTableCellElement, row: number, col: number, size: nu
   }
 }
 
-
+// man function which creates the playground grid
 export function setPlayground(table: HTMLTableElement, size: number): void {
 
   for (let row = 0; row < size; row++) {
@@ -56,7 +56,7 @@ export function setPlayground(table: HTMLTableElement, size: number): void {
       td.setAttribute('d-odd', `${sum % 2 === 0}`);
       td.setAttribute('d-even', `${sum % 2 === 1}`);
       // td.innerText = `${sum}`;
-  
+
       markQuadrant(td, row, col, size);
       markCircle(td, row, col, size);
       markRhombus(td, row, col, size);

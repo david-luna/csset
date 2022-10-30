@@ -1,7 +1,7 @@
-import { CssRule } from "./css-rule";
-import { Combinators, CssTokenType } from "./types";
-import { CssSelectorLexer } from "./css-selector-lexer";
-import { CssAttribute } from "./css-attribute";
+import { CssRule } from './css-rule';
+import { Combinators, CssTokenType } from './types';
+import { CssSelectorLexer } from './css-selector-lexer';
+import { CssAttribute } from './css-attribute';
 
 interface CombinedRule {
   rule: CssRule;
@@ -22,10 +22,10 @@ export class CssSelector {
   }
 
   addRule(combRule: CombinedRule): void {
-    const currentLevel = this.levels[this.levels.length -1];
+    const currentLevel = this.levels[this.levels.length - 1];
 
     if (isAncestor(combRule)) {
-      currentLevel.push(combRule)
+      currentLevel.push(combRule);
       this.levels.push([]);
     } else {
       currentLevel.push(combRule);
@@ -55,8 +55,8 @@ export class CssSelector {
 
   toString(): string {
     let result = '';
-    this.levels.forEach(level => {
-      level.forEach(combinedRule => {
+    this.levels.forEach((level) => {
+      level.forEach((combinedRule) => {
         const comb = combinedRule.comb ? ` ${combinedRule.comb} ` : ' ';
         result += `${combinedRule.rule}${comb}`;
       });
@@ -71,11 +71,11 @@ export class CssSelector {
    */
   private parse(selectorStr: string): void {
     const lexer = new CssSelectorLexer(selectorStr);
-    let rule    = new CssRule();
+    let rule = new CssRule();
     let token;
 
-    while(token = lexer.nextToken()) {
-      switch(token.type) {
+    while ((token = lexer.nextToken())) {
+      switch (token.type) {
         case CssTokenType.Element:
           rule.element = token.values[0];
           break;
@@ -90,9 +90,9 @@ export class CssSelector {
           break;
         case CssTokenType.Combinator:
         case CssTokenType.Space:
-          const comb     = token.values[0] as Combinators;
+          const comb = token.values[0] as Combinators;
           const combRule = { rule, comb };
-          
+
           rule = new CssRule();
           this.addRule(combRule);
           break;
@@ -104,7 +104,7 @@ export class CssSelector {
     this.addRule({ rule, comb: Combinators.NONE });
   }
 
-  private selectorSuperset(selectorOne: SelectorLevel[], selectorTwo:  SelectorLevel[]): boolean {
+  private selectorSuperset(selectorOne: SelectorLevel[], selectorTwo: SelectorLevel[]): boolean {
     // Base case: container is empty (meaning we have checked all its rules)
     // *
     // a
@@ -157,7 +157,6 @@ export class CssSelector {
     // For generic sibling walk up the second list of rules
     return this.selectorSuperset(selectorOne, selectorTwo.slice(0, -1));
   }
-
 
   private levelSuperset(levelOne: SelectorLevel, levelTwo: SelectorLevel): boolean {
     // Base case: container is empty (meaning we have checked all its rules)

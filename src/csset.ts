@@ -1,4 +1,4 @@
-import { CssSelector } from './css-selector';
+import { CssSelector } from './css-selector';
 
 export class Csset {
   selectors: CssSelector[];
@@ -7,7 +7,7 @@ export class Csset {
    * Parses the given selector filing up its private properties with metadata
    * @param selector the selector string
    */
-  constructor (selector: string) {
+  constructor(selector: string) {
     // TODO: this is error prone since attr values may contain this char
     this.selectors = selector.split(',').map((sel) => new CssSelector(sel));
   }
@@ -19,8 +19,8 @@ export class Csset {
   supersetOf(set: Csset): boolean {
     let index = set.selectors.length;
 
-    while(index--) {
-      const containerIndex = this.selectors.findIndex(s => s.supersetOf(set.selectors[index]));
+    while (index--) {
+      const containerIndex = this.selectors.findIndex((s) => s.supersetOf(set.selectors[index]));
 
       if (containerIndex === -1) {
         return false;
@@ -51,12 +51,14 @@ export class Csset {
     }
 
     // Make union of selectors if possible
-    const equalSel  = this.selectors.filter(thisSel => set.selectors.some(otherSel => `${thisSel}` === `${otherSel}`));
-    const uniqueOne = this.selectors.filter(thisSel => !set.selectors.some(otherSel => thisSel.subsetOf(otherSel)));
-    const uniqueTwo = set.selectors.filter(otherSel => !this.selectors.some(thisSel => otherSel.subsetOf(thisSel)));
+    const equalSel = this.selectors.filter((thisSel) =>
+      set.selectors.some((otherSel) => `${thisSel}` === `${otherSel}`),
+    );
+    const uniqueOne = this.selectors.filter((thisSel) => !set.selectors.some((otherSel) => thisSel.subsetOf(otherSel)));
+    const uniqueTwo = set.selectors.filter((otherSel) => !this.selectors.some((thisSel) => otherSel.subsetOf(thisSel)));
     const allSelectors = equalSel.concat(uniqueOne, uniqueTwo);
 
-    return new Csset(`${allSelectors.map(s => s.toString()).join(',')}`);
+    return new Csset(`${allSelectors.map((s) => s.toString()).join(',')}`);
   }
 
   /**
@@ -76,7 +78,7 @@ export class Csset {
     // Make intersection of selectors if possible
     // 1st attempt brute force (intersecting every set with others)
     const intersections = this.selectors
-      .map(thisSel => set.selectors.map(otherSel => thisSel.intersection(otherSel)))
+      .map((thisSel) => set.selectors.map((otherSel) => thisSel.intersection(otherSel)))
       .reduce((flat, val) => flat.concat(val), [])
       .filter((val) => !!val)
       .map((val) => `${val}`);
@@ -89,6 +91,6 @@ export class Csset {
   }
 
   toString(): string {
-    return this.selectors.map(s => `${s}`).join(',');
+    return this.selectors.map((s) => `${s}`).join(',');
   }
 }
