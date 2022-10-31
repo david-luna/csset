@@ -55,8 +55,13 @@ console.assert(set1.intersection(set2) === undefined); // void means empty set
 
 - As for now pseudo selectors are not supported
 
-
 ## Roadmap
 
-- Add better support for complex CSS selectors using parsel package
+- Add better support for complex CSS selectors using parsel-ts package
 - consider other set operations (diff, complementary, ...)
+
+## Release notes
+
+### [0.0.9]
+
+- Added build for ESM modules
