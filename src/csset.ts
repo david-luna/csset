@@ -1,3 +1,4 @@
+import { tokenize } from 'parsel-ts';
 import { CssSelector } from './css-selector';
 
 export class Csset {
@@ -8,8 +9,31 @@ export class Csset {
    * @param selector the selector string
    */
   constructor(selector: string) {
-    // TODO: this is error prone since attr values may contain this char
-    this.selectors = selector.split(',').map((sel) => new CssSelector(sel));
+    const tokens = tokenize(selector);
+
+    if (!tokens) {
+      throw Error();
+    }
+
+    const tokenGroups = tokens.reduce(
+      (groups, token) => {
+        if (typeof token === 'string') {
+          // TODO: fail
+        } else {
+          if (token.type === 'comma') {
+            groups.push([]);
+          } else {
+            const currentGroup = groups[groups.length - 1];
+            currentGroup.push(token.content);
+          }
+        }
+        return groups;
+      },
+      [[]] as string[][],
+    );
+
+    // Each set is a group of selectors
+    this.selectors = tokenGroups.map((group) => group.join('')).map((sel) => new CssSelector(sel));
   }
 
   /**

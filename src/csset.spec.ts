@@ -43,8 +43,8 @@ describe('Csset', () => {
         'div#id.class1.class2[attr1=val1][attr2=val2]',
         'div p > a.active',
         'div > p + span > a#id',
-        'div > section p ~ span',
-        'div > section p ~ span, div > p',
+        'div > section p ~ span',
+        'div > section p ~ span, div > p',
       ];
 
       selectors.forEach((sel) => {
