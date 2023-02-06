@@ -1,16 +1,19 @@
+import { tokenize } from 'parsel-ts';
+
 import { CssAttribute } from './css-attribute';
 import { intersectionReduce, operationSymbols } from '../test/utils';
-import { CssSelectorLexer } from './css-selector-lexer';
 
-const parseSelector = (sel: string): CssAttribute => {
-  const lexer = new CssSelectorLexer(sel);
-  let result;
-  let token;
+const parseSelector = (selector: string): CssAttribute => {
+  const tokens = tokenize(selector) || [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let result: any;
 
-  while ((token = lexer.nextToken())) {
-    const attr = new CssAttribute(token.values);
-    result = result ? result.intersection(attr) : attr;
-  }
+  tokens.forEach((token) => {
+    if (typeof token !== 'string' && token.type === 'attribute') {
+      const attr = new CssAttribute([token.name, token.operator, token.value]);
+      result = result ? result.intersection(attr) : attr;
+    }
+  });
 
   return result as CssAttribute;
 };

@@ -1,4 +1,4 @@
-import { tokenize } from 'parsel-ts';
+import { tokenize, Token } from 'parsel-ts';
 import { CssSelector } from './css-selector';
 
 export class Csset {
@@ -9,31 +9,22 @@ export class Csset {
    * @param selector the selector string
    */
   constructor(selector: string) {
-    const tokens = tokenize(selector);
+    const tokenList = this.getTokens(selector);
+    this.selectors = [];
+    let tokenGroup = [] as Token[];
+    let currentToken = tokenList.shift();
 
-    if (!tokens) {
-      throw Error();
+    while (currentToken) {
+      if (currentToken.type === 'comma') {
+        this.selectors.push(new CssSelector(tokenGroup));
+        tokenGroup = [];
+      } else {
+        tokenGroup.push(currentToken);
+      }
+      currentToken = tokenList.shift();
     }
-
-    const tokenGroups = tokens.reduce(
-      (groups, token) => {
-        if (typeof token === 'string') {
-          // TODO: fail
-        } else {
-          if (token.type === 'comma') {
-            groups.push([]);
-          } else {
-            const currentGroup = groups[groups.length - 1];
-            currentGroup.push(token.content);
-          }
-        }
-        return groups;
-      },
-      [[]] as string[][],
-    );
-
-    // Each set is a group of selectors
-    this.selectors = tokenGroups.map((group) => group.join('')).map((sel) => new CssSelector(sel));
+    // Last group must be pushed
+    this.selectors.push(new CssSelector(tokenGroup));
   }
 
   /**
@@ -116,5 +107,26 @@ export class Csset {
 
   toString(): string {
     return this.selectors.map((s) => `${s}`).join(',');
+  }
+
+  private getTokens(selector: string): Token[] {
+    let tokens;
+
+    try {
+      tokens = tokenize(selector);
+    } catch (error) {
+      throw SyntaxError(`${error}`);
+    }
+
+    if (!tokens) {
+      throw SyntaxError(`Selector ${selector} cannot be parsed.`);
+    }
+
+    const unknownToken = tokens.find((t) => typeof t === 'string');
+    if (unknownToken) {
+      throw SyntaxError(`Unknown Token ${unknownToken} in selector ${selector}`);
+    }
+
+    return tokens as Token[];
   }
 }

@@ -1,29 +1,31 @@
+import { tokenize } from 'parsel-ts';
+
 import { CssRule } from './css-rule';
-import { CssTokenType } from './types';
 import { CssAttribute } from './css-attribute';
-import { CssSelectorLexer } from './css-selector-lexer';
 
-const parseSelector = (sel: string): CssRule => {
-  const lexer = new CssSelectorLexer(sel);
+const parseSelector = (selector: string): CssRule => {
+  const tokens = tokenize(selector) || [];
   const rule = new CssRule();
-  let token;
 
-  while ((token = lexer.nextToken())) {
-    switch (token.type) {
-      case CssTokenType.Element:
-        rule.element = token.values[0];
-        break;
-      case CssTokenType.Id:
-        rule.id = token.values[0];
-        break;
-      case CssTokenType.Class:
-        rule.addClass(token.values[0]);
-        break;
-      case CssTokenType.Attribute:
-        rule.addAttribute(new CssAttribute(token.values));
-        break;
+  tokens.forEach((token) => {
+    if (typeof token !== 'string') {
+      switch (token.type) {
+        case 'type':
+        case 'universal':
+          rule.element = token.content;
+          break;
+        case 'id':
+          rule.id = token.name;
+          break;
+        case 'class':
+          rule.addClass(token.name);
+          break;
+        case 'attribute':
+          rule.addAttribute(new CssAttribute([token.name, token.operator, token.value]));
+          break;
+      }
     }
-  }
+  });
 
   return rule;
 };

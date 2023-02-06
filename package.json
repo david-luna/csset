@@ -54,6 +54,6 @@
     "webpack-cli": "^4.2.0"
   },
   "dependencies": {
-    "parsel-ts": "^1.0.3"
+    "parsel-ts": "^1.0.6"
   }
 }

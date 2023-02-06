@@ -1,10 +1,8 @@
-import { tokenize } from 'parsel-ts';
+import { Token } from 'parsel-ts';
 
 import { CssRule } from './css-rule';
-import { Combinators, CssTokenType } from './types';
-import { CssSelectorLexer } from './css-selector-lexer';
+import { Combinators } from './types';
 import { CssAttribute } from './css-attribute';
-import { Token } from 'parsel-ts/lib/esm/types';
 
 interface CombinedRule {
   rule: CssRule;
@@ -20,8 +18,38 @@ const isAncestor = (combinedRule: CombinedRule): boolean => {
 export class CssSelector {
   levels: SelectorLevel[] = [[]];
 
-  constructor(selectorStr: string) {
-    this.parse(selectorStr);
+  constructor(tokens: Token[]) {
+    let rule = new CssRule();
+
+    tokens.forEach((token) => {
+      const { content } = token;
+
+      switch (token.type) {
+        case 'id':
+          rule.id = content;
+          break;
+        case 'type':
+        case 'universal':
+          rule.element = content;
+          break;
+        case 'class':
+          rule.addClass(token.name);
+          break;
+        case 'attribute':
+          rule.addAttribute(new CssAttribute([token.name, `${token.operator}`, `${token.value}`]));
+          break;
+        case 'combinator':
+          const comb = content as Combinators;
+          const combRule = { rule, comb };
+          rule = new CssRule();
+          this.addRule(combRule);
+          break;
+        default:
+          throw new SyntaxError(`Unknown token ${token.content} at position ${token.pos[0]}`);
+      }
+    });
+    // last rule should be pushed in the layer
+    this.addRule({ rule, comb: Combinators.NONE });
   }
 
   addRule(combRule: CombinedRule): void {
@@ -66,82 +94,6 @@ export class CssSelector {
     });
 
     return result.trim();
-  }
-
-  /**
-   * Fills the list of rules with it's combinators
-   * @param selectorStr the selector to parse
-   */
-  private parseNew(selectorStr: string): void {
-    const tokens = tokenize(selectorStr);
-
-    if (!tokens) {
-      throw new SyntaxError(`Error parsing selector ${selectorStr}`);
-    }
-
-    if (tokens.some((t) => typeof t === 'string')) {
-      throw new SyntaxError(`Error parsing selector ${selectorStr}`);
-    }
-
-    let rule = new CssRule();
-    (tokens as Token[]).forEach((token) => {
-      switch (token.type) {
-        case 'type':
-          rule.element = token.content;
-          break;
-        case 'attribute':
-          rule.addAttribute(new CssAttribute([token.name, `${token.operator}`, `${token.value}`]));
-          break;
-        case 'id':
-          rule.id = token.content;
-          break;
-        case 'class':
-          rule.addClass(token.name);
-          break;
-        case 'combinator':
-          const comb = token.content as Combinators;
-          const combRule = { rule, comb };
-          rule = new CssRule();
-          this.addRule(combRule);
-          break;
-        default:
-          throw new SyntaxError(`Unknown token ${token.content} at position ${token.pos[0]}`);
-      }
-    });
-  }
-  private parse(selectorStr: string): void {
-    const lexer = new CssSelectorLexer(selectorStr);
-    let rule = new CssRule();
-    let token;
-
-    while ((token = lexer.nextToken())) {
-      switch (token.type) {
-        case CssTokenType.Element:
-          rule.element = token.values[0];
-          break;
-        case CssTokenType.Id:
-          rule.id = token.values[0];
-          break;
-        case CssTokenType.Class:
-          rule.addClass(token.values[0]);
-          break;
-        case CssTokenType.Attribute:
-          rule.addAttribute(new CssAttribute(token.values));
-          break;
-        case CssTokenType.Combinator:
-        case CssTokenType.Space:
-          const comb = token.values[0] as Combinators;
-          const combRule = { rule, comb };
-
-          rule = new CssRule();
-          this.addRule(combRule);
-          break;
-        default:
-          throw new SyntaxError(`Unknown token ${token.values[0]} at position ${token.position}`);
-      }
-    }
-    // last rule should be pushed in the layer
-    this.addRule({ rule, comb: Combinators.NONE });
   }
 
   private selectorSuperset(selectorOne: SelectorLevel[], selectorTwo: SelectorLevel[]): boolean {

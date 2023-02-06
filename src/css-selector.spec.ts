@@ -1,3 +1,5 @@
+import { Token, tokenize } from 'parsel-ts';
+
 import { CssSelector } from './css-selector';
 import { operationSymbols } from '../test/utils';
 
@@ -26,8 +28,8 @@ const runExpectations = (testSet: TestItem[], operation: string) => {
   }
 
   testSet.forEach((item) => {
-    const selector1 = new CssSelector(item.sel1);
-    const selector2 = new CssSelector(item.sel2);
+    const selector1 = new CssSelector(tokenize(item.sel1) as Token[]);
+    const selector2 = new CssSelector(tokenize(item.sel2) as Token[]);
     const result = `${selector1} ${operation} ${selector2} => ${selector1[method](selector2)}`;
     const expected = `${selector1} ${operation} ${selector2} => ${item.expected}`;
 
