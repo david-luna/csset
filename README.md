@@ -57,10 +57,14 @@ console.assert(set1.intersection(set2) === undefined); // void means empty set
 
 ## Roadmap
 
-- Add better support for complex CSS selectors using parsel-ts package
+- Support for pseudo-classes
 - consider other set operations (diff, complementary, ...)
 
 ## Release notes
+
+### [0.0.10]
+
+- Use `parsel-ts` to tokenize selectors
 
 ### [0.0.9]
 
