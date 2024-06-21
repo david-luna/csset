@@ -1,8 +1,11 @@
+# macOS
+.DS_Store
+
 # node
 node_modules
 
 # test artifacts
-/coverage
+test-report-*
 
 # build artifacts
-/lib
+build

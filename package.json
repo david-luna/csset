@@ -2,20 +2,30 @@
   "name": "csset",
   "version": "0.0.10",
   "description": "experiment to perform algebra of sets with css",
-  "main": "./lib/cjs/index.js",
-  "module": "./lib/esm/index.js",
-  "types": "./lib/index.d.ts",
+  "type": "module",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "files": [
-    "lib"
+    "lib",
+    "types"
   ],
   "scripts": {
-    "build": "npm run build-browser && npm run build-node",
-    "build-browser": "tsc -p tsconfig.browser.json",
-    "build-node": "tsc -p tsconfig.node.json",
-    "test": "jest",
-    "clean": "rm -rf coverage && rm -rf lib",
-    "lcov": "cat coverage/lcov.info | coveralls",
-    "lint": "eslint 'src/**/*.ts'",
+    "dev": "node --test --watch",
+    "test": "node --test",
+    "test:ci": "node --test --experimental-test-coverage --test-reporter=./test/lcov-reporter.js --test-reporter-destination=test-report-lcov.info",
+    "lcov": "cat test-report-lcov.info | coveralls",
+    "lint": "npm run lint:js && npm run lint:ts",
+    "lint:js": "eslint 'lib/**/*.js' 'test/**/*.js'",
+    "lint:ts": "rm -rf build && tsc && diff -ur types build/lib",
+    "lint:fix": "eslint 'lib/**/*.js' 'test/**/*.js' --fix",
     "demo": "webpack --watch"
   },
   "repository": {
@@ -38,22 +48,14 @@
   },
   "homepage": "https://github.com/david-luna/csset#readme",
   "devDependencies": {
-    "@types/jest": "^27.0.2",
-    "@typescript-eslint/eslint-plugin": "^4.22.0",
-    "@typescript-eslint/parser": "^4.22.0",
+    "@types/node": "^20.12.12",
     "coveralls": "^3.0.11",
-    "eslint": "^7.25.0",
+    "eslint": "^8.53.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
-    "jest": "^27.3.1",
     "prettier": "^2.2.1",
-    "ts-jest": "^27.0.7",
-    "ts-loader": "^8.0.11",
-    "typescript": "^4.2.4",
-    "webpack": "^5.5.0",
-    "webpack-cli": "^4.2.0"
-  },
-  "dependencies": {
-    "parsel-ts": "^1.0.7"
+    "typescript": "^5.4.5",
+    "webpack": "^5.92.1",
+    "webpack-cli": "^5.1.4"
   }
 }
