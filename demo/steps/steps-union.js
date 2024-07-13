@@ -1,5 +1,4 @@
 /* eslint-disable no-undef */
-// @ts-nocheck
 
 /** @type {import('./runner').Step[]} */
 export const STEPS_UNION = [

@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * @typedef {Object} Step
  * @property {string} comment

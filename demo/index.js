@@ -1,5 +1,5 @@
-// @ts-nocheck
 /* eslint-disable no-undef */
+
 import { Csset } from '../lib/csset.js';
 import { setPlayground } from './playground.js';
 import { STEPS, runStep } from './steps/index.js';

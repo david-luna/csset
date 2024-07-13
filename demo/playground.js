@@ -1,4 +1,3 @@
-// @ts-nocheck
 /* eslint-disable no-undef */
 
 /**
@@ -44,11 +43,11 @@ function markRhombus(td, row, col, size) {
 
 /**
  * Also a circle
- * 
- * @param {HTMLTableCellElement} td 
- * @param {number} row 
- * @param {number} col 
- * @param {number} size 
+ *
+ * @param {HTMLTableCellElement} td
+ * @param {number} row
+ * @param {number} col
+ * @param {number} size
  */
 function markCircle(td, row, col, size) {
   const radius = Math.floor(size / 2);
