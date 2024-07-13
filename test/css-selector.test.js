@@ -446,6 +446,78 @@ test('CssSelector - supersetOf', () => {
   assert.ok(sel1.supersetOf(sel2) === false, `${sel1} ${OPERATION_CHARS.notSupersetOf} ${sel2}`);
 });
 
+test('CssSelector - intersection', () => {
+  let sel1 = new CssSelector();
+  // p.classA
+  addRules(sel1, [[['p', '', ['classA']], COMBINATOR_NONE]]);
+  let sel2 = new CssSelector();
+  // p.classB
+  addRules(sel2, [[['p', '', ['classB']], COMBINATOR_NONE]]);
+  assert.strictEqual(sel1.intersection(sel2).toString(), 'p.classA.classB');
+
+  sel1 = new CssSelector();
+  // p[attr^=val][attr2=val2]
+  addRules(sel1, [
+    [
+      [
+        'p',
+        '',
+        [],
+        [
+          ['attr', '^', 'val'],
+          ['attr2', '', 'val2'],
+        ],
+      ],
+      COMBINATOR_NONE,
+    ],
+  ]);
+  sel2 = new CssSelector();
+  // p[attr$=val][attr2^=val]
+  addRules(sel2, [
+    [
+      [
+        'p',
+        '',
+        [],
+        [
+          ['attr', '$', 'val'],
+          ['attr2', '^', 'val'],
+        ],
+      ],
+      COMBINATOR_NONE,
+    ],
+  ]);
+  assert.strictEqual(sel1.intersection(sel2).toString(), 'p[attr$="val"][attr^="val"][attr2^="val"]');
+
+  sel1 = new CssSelector();
+  // p.classA ~ a[attr=val]
+  addRules(sel1, [
+    [['p', '', ['classA']], COMBINATOR_SIBLING],
+    [['a', '', [], [['attr', '=', 'val']]], COMBINATOR_NONE],
+  ]);
+  sel2 = new CssSelector();
+  // p.classA ~ a[attr*=val]
+  addRules(sel2, [
+    [['p', '', ['classB']], COMBINATOR_SIBLING],
+    [['a', '', [], [['attr', '*', 'val']]], COMBINATOR_NONE],
+  ]);
+  assert.strictEqual(sel1.intersection(sel2).toString(), 'p.classA.classB ~ a[attr="val"]');
+
+  sel1 = new CssSelector();
+  // div > p + span > a#id ~ p
+  addRules(sel1, [
+    [['div'], COMBINATOR_CHILD],
+    [['p'], COMBINATOR_ADJACENT],
+    [['span'], COMBINATOR_CHILD],
+    [['a', 'id'], COMBINATOR_SIBLING],
+    [['p'], COMBINATOR_NONE],
+  ]);
+  sel2 = new CssSelector();
+  // *
+  addRules(sel2, [[['*'], COMBINATOR_NONE]]);
+  assert.strictEqual(sel1.intersection(sel2).toString(), `${sel1}`);
+});
+
 // helper functions
 
 /**
