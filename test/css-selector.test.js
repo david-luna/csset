@@ -453,6 +453,7 @@ test('CssSelector - intersection', () => {
   let sel2 = new CssSelector();
   // p.classB
   addRules(sel2, [[['p', '', ['classB']], COMBINATOR_NONE]]);
+  // class intersection
   assert.strictEqual(sel1.intersection(sel2).toString(), 'p.classA.classB');
 
   sel1 = new CssSelector();
@@ -487,6 +488,7 @@ test('CssSelector - intersection', () => {
       COMBINATOR_NONE,
     ],
   ]);
+  // attribute intersection
   assert.strictEqual(sel1.intersection(sel2).toString(), 'p[attr$="val"][attr^="val"][attr2^="val"]');
 
   sel1 = new CssSelector();
@@ -496,12 +498,44 @@ test('CssSelector - intersection', () => {
     [['a', '', [], [['attr', '=', 'val']]], COMBINATOR_NONE],
   ]);
   sel2 = new CssSelector();
-  // p.classA ~ a[attr*=val]
+  // p.classB ~ a[attr*=val]
   addRules(sel2, [
     [['p', '', ['classB']], COMBINATOR_SIBLING],
     [['a', '', [], [['attr', '*', 'val']]], COMBINATOR_NONE],
   ]);
+  // class intersection with combinator
   assert.strictEqual(sel1.intersection(sel2).toString(), 'p.classA.classB ~ a[attr="val"]');
+
+  sel1 = new CssSelector();
+  // p.classA + a[attr=val]
+  addRules(sel1, [
+    [['p', '', ['classA']], COMBINATOR_ADJACENT],
+    [['a', '', [], [['attr', '=', 'val']]], COMBINATOR_NONE],
+  ]);
+  sel2 = new CssSelector();
+  // p.classB ~ a[attr*=val]
+  addRules(sel2, [
+    [['p', '', ['classB']], COMBINATOR_SIBLING],
+    [['a', '', [], [['attr', '*', 'val']]], COMBINATOR_NONE],
+  ]);
+  // same level combinator intersection (more specific wins)
+  assert.strictEqual(sel1.intersection(sel2).toString(), 'p.classA.classB ~ a[attr="val"]');
+
+  sel1 = new CssSelector();
+  // section p a
+  addRules(sel1, [
+    [['section'], COMBINATOR_DESCENDANT],
+    [['p'], COMBINATOR_DESCENDANT],
+    [['a'], COMBINATOR_NONE],
+  ]);
+  sel2 = new CssSelector();
+  // p.class > a
+  addRules(sel2, [
+    [['p', '', ['class']], COMBINATOR_CHILD],
+    [['a'], COMBINATOR_NONE],
+  ]);
+  // same level combinator intersection (more specific wins)
+  assert.strictEqual(sel1.intersection(sel2).toString(), 'p.class > a');
 
   sel1 = new CssSelector();
   // div > p + span > a#id ~ p
@@ -515,6 +549,7 @@ test('CssSelector - intersection', () => {
   sel2 = new CssSelector();
   // *
   addRules(sel2, [[['*'], COMBINATOR_NONE]]);
+  // selectors with different levels
   assert.strictEqual(sel1.intersection(sel2).toString(), `${sel1}`);
 });
 
