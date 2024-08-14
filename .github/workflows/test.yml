@@ -1,4 +1,4 @@
-name: build
+name: test
 on:
   workflow_dispatch:
   push:
@@ -16,7 +16,7 @@ jobs:
         run: |
           npm install
           npm run lint
-          npm test:ci
+          npm run test:ci
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
