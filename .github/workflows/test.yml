@@ -2,7 +2,7 @@ name: build
 on:
   workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [ main ]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,7 +16,7 @@ jobs:
         run: |
           npm install
           npm run lint
-          npm test
+          npm test:ci
       - name: Coveralls
         uses: coverallsapp/github-action@master
         with:
