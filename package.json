@@ -26,6 +26,7 @@
     "lint:js": "eslint 'lib/**/*.js' 'test/**/*.js'",
     "lint:ts": "rm -rf build && tsc && diff -ur types build/lib",
     "lint:fix": "eslint 'lib/**/*.js' 'test/**/*.js' --fix",
+    "gen:types": "rm -rf build types && tsc && mv build/lib types",
     "demo": "webpack --watch"
   },
   "repository": {

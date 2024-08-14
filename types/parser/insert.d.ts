@@ -5,7 +5,6 @@
  * @property {string} property
  * @property {T} value
  */
-
 /**
  * @template T
  * Inserts a property before another in an object literal without breaking references to it
@@ -14,22 +13,12 @@
  * @param {PropertyEntry<T>} entry the entry info with property, value and before which property has to go
  * @returns {undefined}
  */
-export function insert(target, entry) {
-  /** @type {Record<string, T>} */
-  const temp = {};
-  const { before, property, value } = entry;
-  let found = false;
-
-  for (const p in target) {
-    if (p === before) {
-      found = true;
-    }
-
-    if (found) {
-      temp[p] = target[p];
-      delete target[p];
-    }
-  }
-
-  Object.assign(target, { [property]: value, ...temp });
-}
+export function insert<T>(target: Record<string, T>, entry: PropertyEntry<T>): undefined;
+/**
+ * <T>
+ */
+export type PropertyEntry<T> = {
+    before: string;
+    property: string;
+    value: T;
+};
