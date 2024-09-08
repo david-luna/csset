@@ -28,9 +28,9 @@ export class CssSelector {
     subsetOf(other: CssSelector): boolean;
     /**
      * @param {CssSelector} other
-     * @returns {CssSelector | undefined}
+     * @returns {CssSelector}
      */
-    intersection(other: CssSelector): CssSelector | undefined;
+    intersection(other: CssSelector): CssSelector;
     /**
      * @returns {string}
      */

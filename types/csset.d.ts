@@ -27,9 +27,9 @@ export class Csset {
     union(other: Csset): Csset;
     /**
      * @param {Csset} other
-     * @returns {Csset | undefined}
+     * @returns {Csset}
      */
-    intersection(other: Csset): Csset | undefined;
+    intersection(other: Csset): Csset;
     /**
      * @returns {string}
      */
