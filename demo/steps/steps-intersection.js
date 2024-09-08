@@ -12,6 +12,15 @@ export const STEPS_INTERSECTION = [
     },
   },
   {
+    comment: 'This is another example of intersection',
+    code: () => {
+      const quadrantOne = new Csset('.quadrant-four');
+      const diamond = new Csset('.circle');
+
+      return quadrantOne.intersection(diamond);
+    },
+  },
+  {
     comment: 'Like unions you can calculate intersection for more than two sets',
     code: () => {
       const quadrantOne = new Csset('.quadrant-one');
@@ -19,23 +28,6 @@ export const STEPS_INTERSECTION = [
       const diamond = new Csset('.diamond');
 
       return quadrantOne.intersection(even).intersection(diamond);
-    },
-  },
-  {
-    comment: 'A bigger intersection',
-    code: () => {
-      const quadrantFour = new Csset('.quadrant-four');
-      const diamond = new Csset('.diamond');
-      let result = quadrantFour;
-
-      for (let i = 0; i < 50; i++) {
-        if (i % 2 === 0) {
-          const s = new Csset(`[d-col=${i}]`);
-          result = result.intersection(s);
-        }
-      }
-
-      return result.intersection(diamond);
     },
   },
 ];

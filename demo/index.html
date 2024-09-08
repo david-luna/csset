@@ -23,7 +23,11 @@
         border: 1px solid;
       }
       .container {
+        display: flex;
         text-align: center;
+      }
+      .item {
+        flex: 1;
       }
       #code {
         text-align: initial;
@@ -36,20 +40,22 @@
   </head>
   <body>
     <div class="container">
-      <table class="item">
-        <tbody id="playground"></tbody>
-      </table>
+      <div class="item">
+        <table>
+          <tbody id="playground"></tbody>
+        </table>
+      </div>
       <div class="item">
         <p id="comment">
           Csset is a utility class to treat CSS selector like sets of elements.
           The following grid contains cells with different classes and attributes and we can use CSS selectors
           to define different sets of cells.
         </p>
+        <button id="next">Next</button>
         <pre>
           <code class="language-javascript" id="code">
           </code>
         </pre>
-        <button id="next">Next</button>
       </div>
     </div>
     <script src="./bundle.js"></script>

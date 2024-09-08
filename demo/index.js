@@ -16,7 +16,7 @@ const nextButton = document.querySelector('#next');
 
 // Prepare the playground
 // Size MUST be odd number
-const playgroundSize = 101;
+const playgroundSize = 51;
 const playground = document.querySelector('#playground');
 setPlayground(playground, playgroundSize);
 
