@@ -1,6 +1,6 @@
 /**
  * @typedef {Object} Step
- * @property {string} comment
+ * @property {string[]} comments
  * @property {() => unknown} code
  */
 
@@ -32,22 +32,34 @@ function isCsset(source) {
  */
 // eslint-disable-next-line prettier/prettier
 export function runStep(step, codeElem, styeElem) {
-  // Show code
-  const source = step.code.toString();
-  const linesOfCode = source.split('\n').map((line, idx) => {
-    return idx > 0 ? line.replace('    ', '') : line;
-  });
-  // Put comment in code
-  linesOfCode.unshift(`// ${step.comment}`);
-  codeElem.innerHTML = linesOfCode.join('\n');
+  // Reset the style element
+  styeElem.innerText = '';
 
-  // Change color if returned expression is a Csset
-  const evalResult = eval(`(${source})()`);
-  const styleText = `${evalResult}{ background-color: ${getRandomColor()}; }`;
+  // Get comments
+  const snippet = step.comments.map((c) => `// ${c}`);
 
-  if (isCsset(evalResult)) {
-    styeElem.innerText = styleText;
-  } else {
-    styeElem.innerText = '';
+  // Add code & execute
+  const source = step.code?.toString();
+  if (source) {
+    const src = source.split('\n').map((line, idx) => {
+      return idx > 0 ? line.replace('    ', '') : line;
+    });
+    snippet.push(...src);
+
+    // Change color if returned expression is a Csset
+    const evalResult = eval(`(${source})()`);
+    const styleText = `${evalResult}{ background-color: ${getRandomColor()}; }`;
+
+    if (isCsset(evalResult)) {
+      styeElem.innerText = styleText;
+      snippet.push(`\n// selector: ${evalResult}`);
+    }
+    // else {
+    //   styeElem.innerText = '';
+    // }
   }
+  // Add snipped into code window & highlight
+  codeElem.innerHTML = snippet.join('\n');
+  // eslint-disable-next-line no-undef
+  Prism.highlightElement(codeElem);
 }
