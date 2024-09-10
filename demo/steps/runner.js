@@ -31,20 +31,15 @@ function isCsset(source) {
  * @param {HTMLElement} styeElem
  */
 // eslint-disable-next-line prettier/prettier
-export function runStep(step, commentElem, codeElem, styeElem) {
-  // Put comment
-  commentElem.innerText = step.comment;
-
+export function runStep(step, codeElem, styeElem) {
   // Show code
   const source = step.code.toString();
-  const linesOfCode = source
-    .split('\n')
-    .slice(1, -1)
-    .map((line) => {
-      return line.replace(/return /g, '');
-    });
-
-  codeElem.innerText = linesOfCode.join('\n');
+  const linesOfCode = source.split('\n').map((line, idx) => {
+    return idx > 0 ? line.replace('    ', '') : line;
+  });
+  // Put comment in code
+  linesOfCode.unshift(`// ${step.comment}`);
+  codeElem.innerHTML = linesOfCode.join('\n');
 
   // Change color if returned expression is a Csset
   const evalResult = eval(`(${source})()`);

@@ -5,10 +5,8 @@ import { setPlayground } from './playground.js';
 import { STEPS, runStep } from './steps/index.js';
 
 window.Csset = Csset;
-// (window as any).createSet = (sel: string) => new Csset(sel);
 
 // Where to put step info
-const commentArea = document.querySelector('#comment');
 const styleArea = document.querySelector('#style');
 const codeArea = document.querySelector('#code');
 // Control
@@ -31,8 +29,9 @@ nextButton.addEventListener('click', () => {
   const step = STEPS[index++];
 
   // Put comment and display snippet
-  runStep(step, commentArea, codeArea, styleArea);
-  hljs.highlightBlock(codeArea);
+  runStep(step, codeArea, styleArea);
+  Prism.highlightElement(codeArea);
+  // Prism.highlightAll();
 
   if (index >= STEPS.length) {
     nextButton.innerText = 'Restart';

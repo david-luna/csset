@@ -1,63 +1,187 @@
 <!doctype html>
 <html lang="en">
-  <meta charset="utf-8"/>
-  <head>
-    <title>Csset - DEMO</title>
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Csset - Do set algebra with css selectors</title>
+    <meta name="description" content="Csset is a JS library which trears css selectors as sets."/>
+
+    <!--Google font-->
+    <link href="https://fonts.googleapis.com/css?family=K2D:300,400,500,700,800" rel="stylesheet">
+
+    <!-- Bootstrap CSS / Color Scheme -->
+    <link rel="stylesheet" href="css/bootstrap.css">
+
+    <!-- Custom styles -->
     <style>
-      table, caption, tbody, tfoot, thead, tr, th, td {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        font-size: 100%;
-        font: inherit;
-        vertical-align: baseline;
-      }
-      table {
-        border-collapse: collapse;
-        border-spacing: 0;
-        margin: auto;
-      }
-      .tile {
-        width: 6px;
-        height: 6px;
-        border: 1px solid;
-      }
-      .container {
-        display: flex;
-        text-align: center;
-      }
-      .item {
-        flex: 1;
-      }
-      #code {
-        text-align: initial;
-      }
-    </style>
-    <link rel="stylesheet" href="./highlight/styles/github.css">
-    <script src="./highlight/highlight.pack.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
+        table, caption, tbody, tfoot, thead, tr, th, td {
+          margin: 0;
+          padding: 0;
+          border: 0;
+          font-size: 100%;
+          font: inherit;
+          vertical-align: baseline;
+        }
+        table {
+          border-collapse: collapse;
+          border-spacing: 0;
+          margin: auto;
+        }
+        .tile {
+          width: 6px;
+          height: 6px;
+          border: 1px solid;
+        }
+        /* Tweak for prism fat arrow functions */
+        #code > .token.operator {
+            color: #adb5bd;
+        }
+      </style>
+
+    <!-- Style element for the demo -->
     <style id="style"></style>
-  </head>
-  <body>
+</head>
+<body>
+
+<!--Header Section-->
+<section class="bg-gradient pt-5 pb-6">
     <div class="container">
-      <div class="item">
-        <table>
-          <tbody id="playground"></tbody>
-        </table>
-      </div>
-      <div class="item">
-        <p id="comment">
-          Csset is a utility class to treat CSS selector like sets of elements.
-          The following grid contains cells with different classes and attributes and we can use CSS selectors
-          to define different sets of cells.
-        </p>
-        <button id="next">Next</button>
-        <pre>
-          <code class="language-javascript" id="code">
-          </code>
-        </pre>
-      </div>
+        <div class="row">
+            <div class="col-12 d-flex flex-row align-items-center justify-content-between">
+                <div class="heading-brand">Csset.js</div>
+                <a href="https://github.com/david-luna/csset/" class="btn btn-dark svg-icon">
+                    <em class="mr-2" data-feather="github"></em>
+                    Contribute
+                </a>
+            </div>
+        </div>
+        <div class="row mt-6">
+            <div class="col-md-8 mx-auto text-center">
+                <h1>Perform set algebra with CSS selectors</h1>
+                <p class="lead mb-5" id="comment">
+                    Csset is a small library that converts CSS selectors into sets allowing you to perform
+                    algebraic operations like: superset, subset, union, intersection.
+                </p>
+            </div>
+        </div>
+        
+        <!-- <div class="row mt-5">
+            <button class="btn btn-success" id="next">
+                Next
+            </button>
+        </div> -->
+        <div class="row mt-5">
+            <div class="col-md-8 mx-auto">
+                <div class="code-window">
+                    <div class="dots">
+                        <div class="red"></div>
+                        <div class="orange"></div>
+                        <div class="green"></div>
+                    </div>
+                    <pre class="language-javascript line-numbers"><code class="language-javascript" id="code"></code></pre>
+                </div>
+            </div>
+            <div class="col-md-4 mx-auto">
+                <div class="code-window">
+                    <table>
+                        <tbody id="playground"></tbody>
+                    </table>
+                </div>
+                <div style="padding: 16px; text-align: center;">
+                    <button class="btn btn-success" id="next">
+                        Next
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-    <script src="./bundle.js"></script>
-  </body>
+</section>
+
+<!--Features Section-->
+<section class="py-6">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <h2 class="text-center text-md-left"><span class="text-success">Csset.js</span> works with following platforms </h2>
+                <div class="row feature-grid">
+                    <div class="col-sm-6">
+                        <div class="media">
+                            <div class="icon-box">
+                                <div class="icon-box-inner">
+                                    <span data-feather="chrome" width="28" height="28"></span>
+                                </div>
+                            </div>
+                            <div class="media-body">
+                                Browser
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="media">
+                            <div class="icon-box">
+                                <div class="icon-box-inner">
+                                    <span data-feather="cpu" width="28" height="28"></span>
+                                </div>
+                            </div>
+                            <div class="media-body">
+                                NodeJS
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--Used By Section-->
+<!-- <section class="pb-6">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <h2 class="text-center text-md-left">Used by Thousands of Companies</h2>
+                <p class="lead text-muted">Prism.js is used on several websites, small and large.</p>
+                <div class="mt-5 d-flex flex-row justify-content-md-between flex-wrap press-icons">
+                    <img src="https://logo.clearbit.com/google.com?size=60" alt="Google"/>
+                    <img src="https://logo.clearbit.com/twitter.com?size=60" alt="Twitter"/>
+                    <img src="https://logo.clearbit.com/vuejs.org?size=60" alt="Veu.js"/>
+                    <img src="https://logo.clearbit.com/stripe.com?size=60" alt="Stripe"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</section> -->
+
+<!--footer-->
+<footer class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center">
+                <ul class="list-inline">
+                    
+                    <li class="list-inline-item"><a href="https://github.com/david-luna/csset/">Fork Csset.js on GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="row my-2">
+            <div class="col-md-4 mx-auto text-muted text-center small-xl">
+                &copy; 2024 - MIT license
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Scripts for icons and code higlight -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.7.3/feather.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.15.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="./bundle.js"></script>
+<script>
+    window.onload = function () {
+        // init feather icons
+        feather.replace();
+    };
+</script>
+</body>
 </html>

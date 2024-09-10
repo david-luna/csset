@@ -17,7 +17,7 @@ npm install --save csset
 
 ## Requirements
 
-Works in all modern browsers :)
+Although this lib has been tested using the node's [test runner](https://nodejs.org/docs/latest/api/test.html#test-runner) it should work in all node and browser environments that support `Set` and `template literals`.
 
 ## Usage
 
@@ -61,6 +61,17 @@ console.assert(set1.intersection(set2) === undefined); // void means empty set
 - consider other set operations (diff, complementary, ...)
 
 ## Release notes
+
+### [0.1.0]
+
+- BREAKING CHANGE: the package has been migrated from TypeScript to
+  JavaScript + JsDocs for types. In this migration I've decided to make the
+  package ESM only so `require` would fail to load the lib. The new flag
+  `--experimental-require-module` can be used to load the lib if your app
+  is in `commonjs` format. Checkout [the docs](https://nodejs.org/docs/latest/api/modules.html#loading-ecmascript-modules-using-require).
+- Embed the parser into the lib
+- Add `intersection` API
+- Update demos
 
 ### [0.0.10]
 
