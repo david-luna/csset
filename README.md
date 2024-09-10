@@ -71,6 +71,7 @@ console.assert(set1.intersection(set2) === undefined); // void means empty set
   is in `commonjs` format. Checkout [the docs](https://nodejs.org/docs/latest/api/modules.html#loading-ecmascript-modules-using-require).
 - Embed the parser into the lib
 - Add `intersection` API
+- Add `empty` properti to set class
 - Update demos
 
 ### [0.0.10]
