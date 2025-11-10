@@ -61,6 +61,10 @@ console.assert(set1.intersection(set2) === undefined); // void means empty set
 
 ## Release notes
 
+### [0.1.1]
+
+- Add trusted publishers and provenance
+
 ### [0.1.0]
 
 - BREAKING CHANGE: the package has been migrated from TypeScript to
