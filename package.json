@@ -34,7 +34,8 @@
     "url": "git+https://github.com/david-luna/csset.git"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "keywords": [
     "css",
