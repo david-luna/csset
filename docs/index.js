@@ -22,18 +22,17 @@ let index = 0;
 
 nextButton.addEventListener('click', () => {
   if (nextButton.innerText === 'Restart') {
-    window.location.reload();
-    return;
+    index = 0;
+    nextButton.innerText = 'Next';
   }
 
-  const step = STEPS[index++];
-
   // Put comment and display snippet
-  runStep(step, codeArea, styleArea);
-  Prism.highlightElement(codeArea);
-  // Prism.highlightAll();
+  runStep(STEPS[index++], codeArea, styleArea);
 
   if (index >= STEPS.length) {
     nextButton.innerText = 'Restart';
   }
 });
+
+// Run for the 1st time
+runStep(STEPS[index++], codeArea, styleArea);

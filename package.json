@@ -1,6 +1,6 @@
 {
   "name": "csset",
-  "version": "0.0.10",
+  "version": "0.1.0",
   "description": "experiment to perform algebra of sets with css",
   "type": "module",
   "types": "./types/index.d.ts",
@@ -27,7 +27,7 @@
     "lint:ts": "rm -rf build && tsc && diff -ur types build/lib",
     "lint:fix": "eslint 'lib/**/*.js' 'test/**/*.js' --fix",
     "gen:types": "rm -rf build types && tsc && mv build/lib types",
-    "demo": "webpack --watch"
+    "docs": "webpack --watch"
   },
   "repository": {
     "type": "git",

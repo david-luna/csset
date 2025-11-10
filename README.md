@@ -4,7 +4,6 @@ Set operations for CSS selectors
 
 [![GitHub license](https://img.shields.io/npm/l/csset.svg)](https://github.com/david-luna/csset/blob/master/README.md)
 [![Issues](https://img.shields.io/github/issues/david-luna/csset.svg)](https://github.com/david-luna/csset/issues)
-[![Build Status](https://travis-ci.org/david-luna/csset.svg?branch=master)](https://travis-ci.org/david-luna/csset)
 [![Coverage Status](https://coveralls.io/repos/github/david-luna/csset/badge.svg)](https://coveralls.io/github/david-luna/csset)
 ![Code Size](https://img.shields.io/bundlephobia/minzip/csset.svg)
 ![Weekly downloads](https://img.shields.io/npm/dw/csset.svg)
@@ -71,6 +70,7 @@ console.assert(set1.intersection(set2) === undefined); // void means empty set
   is in `commonjs` format. Checkout [the docs](https://nodejs.org/docs/latest/api/modules.html#loading-ecmascript-modules-using-require).
 - Embed the parser into the lib
 - Add `intersection` API
+- Add `empty` properti to set class
 - Update demos
 
 ### [0.0.10]

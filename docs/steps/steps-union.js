@@ -3,7 +3,14 @@
 /** @type {import('./runner').Step[]} */
 export const STEPS_UNION = [
   {
-    comment: 'Union is a straight forward method used to join sets',
+    // eslint-disable-next-line prettier/prettier
+    comments: [
+      'Now that we are familiar with the playground let\'s see',
+      'the union operation.',
+    ],
+  },
+  {
+    comments: ['Union is a straight forward method used to join sets'],
     code: () => {
       const quadrantOne = new Csset('.quadrant-one');
       const quadrantTwo = new Csset('.quadrant-two');
@@ -12,7 +19,7 @@ export const STEPS_UNION = [
     },
   },
   {
-    comment: 'You can do an union of many sets',
+    comments: ['You can do an union of many sets'],
     code: () => {
       const quadrantOne = new Csset('.quadrant-one');
       const quadrantTwo = new Csset('.quadrant-two');
